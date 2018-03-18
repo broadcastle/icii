@@ -6,8 +6,8 @@ import (
 	"github.com/tcolgate/mp3"
 )
 
-// Info holds information about file to be played.
-type Info struct {
+// Data holds information about file to be played.
+type Data struct {
 	Bitrate    int64
 	Samples    int
 	SampleRate int
@@ -17,10 +17,11 @@ type Info struct {
 	Reader     io.Reader
 }
 
-// GetInfo retrieves the information from a file.
-func GetInfo(filename string) (Info, error) {
+// GetData gets the information needed from a io.Reader.
+func GetData(d io.Reader) (Data, error) {
 
-	var info Info
+	var data Data
 
-	return info, nil
+	return data, nil
+
 }
