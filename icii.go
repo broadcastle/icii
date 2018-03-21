@@ -23,6 +23,13 @@ func Create(name, description, host, mountpount string) (Stream, error) {
 		Description: description,
 	}
 
+	connection, err := connect(host)
+	if err != nil {
+		return s, err
+	}
+
+	s.Connection = connection
+
 	return s, nil
 }
 
