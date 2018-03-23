@@ -10,13 +10,19 @@ import (
 type Stream struct {
 	Name        string
 	Description string
+	Mount       string
+	User        string
+	Password    string
+	Host        string
+	Genre       string
+	Website     string
 	Connection  net.Conn
 }
 
 // Create a stream using the supplied information.
 //
 // Create returns an error if something went wrong during the creation process.
-func Create(name, description, host, mountpount string) (Stream, error) {
+func Create(name, description, host, mountpount, user, password string) (Stream, error) {
 
 	s := Stream{
 		Name:        name,

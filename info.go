@@ -57,13 +57,9 @@ func GetData(d io.Reader) (Data, error) {
 
 	// Determine how many channels the track has by using a frame.
 	switch frame.Header().ChannelMode().String() {
-	case "Stereo":
+	case "Stereo", "Dual Channel":
 		data.Channels = 2
-	case "Joint Stereo":
-		data.Channels = 1
-	case "Dual Channel":
-		data.Channels = 2
-	case "Single Channel":
+	case "Joint Stereo", "Single Channel":
 		data.Channels = 1
 	}
 
