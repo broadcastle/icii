@@ -1,4 +1,4 @@
-package icii
+package frames
 
 //// Taken from github.com/stunndard/goicy
 
@@ -9,7 +9,8 @@ import (
 	"os"
 )
 
-func getFrames(f os.File, framesToRead int) (buf []byte, err error) {
+// Get retrieves the frames from f.
+func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 	framesRead, bytesRead, bytesToRead := 0, 0, 0
 	firstHeader, secondHeader := make([]byte, 4), make([]byte, 4)
@@ -236,7 +237,7 @@ func (f *frame) findBitrate() error {
 	case 5, 4, 2, 1:
 		b = 64
 	default:
-		return errors.New("unable to find bitrate")
+		return errors.New("unable to find bitrate: frame version is missing")
 	}
 
 	f.br = brtable[f.bri+b] * 1000
@@ -262,7 +263,7 @@ func (f *frame) findSampleRate() error {
 	case 3, 2, 1: // mpeg 3 | layers 1,2,3
 		n = 8
 	default:
-		return errors.New("could not find sample rate")
+		return errors.New("unable to find sample rate: frame version is missing")
 	}
 
 	f.sr = srtable[f.sri+n]
@@ -271,6 +272,10 @@ func (f *frame) findSampleRate() error {
 }
 
 func (f *frame) calculateSize() error {
+
+	if f.br == 0 || f.sr == 0 || f.padding == 0 {
+		return errors.New("unable to calculate size: frame information is missing")
+	}
 
 	switch f.version {
 	case 9:
@@ -284,7 +289,7 @@ func (f *frame) calculateSize() error {
 	case 4, 1:
 		f.size = int(72*f.br/f.sr) + f.padding
 	default:
-		return errors.New("unable to calculate size")
+		return errors.New("unable to calculate size: frame version is missing")
 	}
 
 	return nil

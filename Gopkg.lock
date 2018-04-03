@@ -7,9 +7,15 @@
   packages = [".","internal/data"]
   revision = "e79c5a46d30097711c17ac6dee3b1839473cdca8"
 
+[[projects]]
+  name = "gopkg.in/h2non/filetype.v1"
+  packages = [".","matchers","types"]
+  revision = "cc14fdc9ca0e4c2bafad7458f6ff79fd3947cfbb"
+  version = "v1.0.5"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5486275aade0c6beb0775c4570ba4f2747383becebadf0578b3da52456f01fc4"
+  inputs-digest = "092a3ef6ad658b73744068a9cb3cdb9a47532d31a911154d6c346e7415c63af3"
   solver-name = "gps-cdcl"
   solver-version = 1

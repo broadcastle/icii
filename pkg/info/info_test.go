@@ -1,18 +1,14 @@
-package icii
+package info
 
 import (
-	"os"
 	"testing"
 )
 
 func TestGetData(t *testing.T) {
 
-	file, err := os.Open("test_audio/loping_sting.mp3")
-	if err != nil {
-		t.Error(err)
-	}
+	location := "test_audio/loping_sting.mp3"
 
-	data, err := GetData(file)
+	data, err := GetData(location)
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,6 +23,10 @@ func TestGetData(t *testing.T) {
 
 	if data.SampleRate != 44100 {
 		t.Errorf("wrong sample rate\nwas %x instead of %x", data.SampleRate, 44100)
+	}
+
+	if data.Location != location {
+		t.Errorf("wrong location\nwas %s instead of %s", data.Location, location)
 	}
 
 }

@@ -1,4 +1,4 @@
-package icii
+package network
 
 import "testing"
 
@@ -18,21 +18,6 @@ func TestConnect(t *testing.T) {
 			t.Error(err)
 		}
 
-	}
-
-}
-
-func TestConnection(t *testing.T) {
-
-	urls := map[string]bool{
-		"http://192.168.1.227:8080": true,
-	}
-
-	for u, result := range urls {
-		err := connection(u)
-		if err != nil && result {
-			t.Error(err)
-		}
 	}
 
 }
