@@ -92,3 +92,17 @@ func (d Data) TimeBetweenTracks(timeBegin time.Time) time.Duration {
 
 	return time.Duration(time.Millisecond) * time.Duration(timeBetweenTracks)
 }
+
+// BufferSent takes the framesSent and timeBegan and calculates
+func (d Data) BufferSent(framesSent int, timeBegan time.Time) int {
+
+	elapsed := float64((time.Now().Sub(timeBegan)).Seconds()) * 1000
+	sent := float64(framesSent) * float64(d.Samples) / float64(d.SampleRate) * 1000
+
+	if sent < elapsed {
+		return 0
+	}
+
+	return int(sent) - int(elapsed)
+
+}

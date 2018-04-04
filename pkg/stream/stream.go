@@ -45,28 +45,11 @@ func File(filename string) error {
 
 		framesSent = framesSent + i.FramesToRead
 
-		timeElapsed := int(float64((time.Now().Sub(timeBegin)).Seconds()) * 1000)
-		timeSent := int(float64(framesSent) * float64(i.Samples) / float64(i.SampleRate) * 1000)
+		bufferSent := i.BufferSent(framesSent, timeBegin)
 
-		bufferSent := 0
-		if timeSent > timeElapsed {
-			bufferSent = timeSent - timeElapsed
-		}
+		pause := timePause(bufferSent, sendBegin)
 
-		sendLag := int(float64((time.Now().Sub(sendBegin)).Seconds()) * 1000)
-
-		x := 975
-
-		switch {
-		case bufferSent < (Buffer - 100):
-			x = 900
-		case bufferSent > Buffer:
-			x = 1100
-		}
-
-		timePause := x - sendLag
-
-		time.Sleep(time.Duration(time.Millisecond) * time.Duration(timePause))
+		time.Sleep(pause)
 
 	}
 
@@ -75,4 +58,22 @@ func File(filename string) error {
 	time.Sleep(sleep)
 
 	return nil
+}
+
+func timePause(sent int, send time.Time) time.Duration {
+
+	x := 975
+
+	switch {
+	case sent < (Buffer - 100):
+		x = 900
+	case sent > Buffer:
+		x = 1100
+	}
+
+	lag := float64((time.Now().Sub(send)).Seconds()) * 1000
+	pause := x - int(lag)
+
+	return time.Duration(time.Millisecond) * time.Duration(pause)
+
 }
