@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 )
 
 // Get retrieves the frames from f.
@@ -19,6 +20,7 @@ func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 		bytesRead, err = f.Read(firstHeader)
 		if err != nil && err != io.EOF {
+			log.Println("GetRead")
 			return
 		}
 
@@ -28,6 +30,7 @@ func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 		if _, valid := isValidFrameHeader(firstHeader); !valid {
 			if _, err := f.Seek(-3, 1); err != nil {
+				log.Println("Get: isValidFrameHeader")
 				return nil, err
 			}
 		}
@@ -36,6 +39,7 @@ func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 		if frameLength == 0 || frameLength > 5000 {
 			if _, err := f.Seek(-3, 1); err != nil {
+				log.Println("Get: frameLength")
 				return nil, err
 			}
 			continue
@@ -48,11 +52,13 @@ func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 		posFirst, err := f.Seek(0, 1)
 		if err != nil {
+			log.Println("Get: 2")
 			return nil, err
 		}
 
 		br, err := f.Seek(int64(bytesToRead), 1)
 		if err != nil {
+			log.Println("Get: 3")
 			return nil, err
 		}
 
@@ -60,26 +66,31 @@ func Get(f os.File, framesToRead int) (buf []byte, err error) {
 
 		bbr, err := f.Read(secondHeader)
 		if err != nil {
+			log.Println("Get: 4")
 			return nil, err
 		}
 
 		if _, valid := isValidFrameHeader(secondHeader); !valid {
 			if _, err := f.Seek(-3, 1); err != nil {
+				log.Println("Get: 5")
 				return nil, err
 			}
 		}
 
 		bytesRead = bytesRead + int(bbr)
 
-		if _, err := f.Seek(int64(-bytesRead), 1); err != nil {
-			return nil, err
-		}
+		f.Seek(int64(-bytesRead), 1)
+		// if _, err := f.Seek(int64(-bytesRead), 1); err != nil {
+		// 	log.Println("Get: 6")
+		// 	return nil, err
+		// }
 
 		buf = append(buf, firstHeader...)
 		buf2 := make([]byte, bytesToRead)
 
 		bytesRead, err = f.Read(buf2)
 		if err != nil {
+			log.Println("Get: 7")
 			return nil, err
 		}
 
@@ -115,12 +126,12 @@ func getFrameSize(header []byte) int {
 	padding := int(header[2]&0x02) >> 1
 	brindex := byte((header[2] & 0x0F0) >> 4)
 
-	f := frame{
-		mpeg:    mpegver,
-		layer:   layer,
-		sri:     srindex,
-		bri:     brindex,
-		padding: padding,
+	f := Frame{
+		Mpeg:    mpegver,
+		Layer:   layer,
+		Sri:     srindex,
+		Bri:     brindex,
+		Padding: padding,
 	}
 
 	if err := f.findVersion(); err != nil {
@@ -143,7 +154,7 @@ func getFrameSize(header []byte) int {
 		return 0
 	}
 
-	return f.size
+	return f.Size
 }
 
 func isValidFrameHeader(header []byte) (int, bool) {
@@ -179,42 +190,48 @@ func isValidFrameHeader(header []byte) (int, bool) {
 	return 0, true
 }
 
-type frame struct {
-	br      uint32 // bitrate
-	bri     byte   // bitrate index
-	layer   byte   // layer version
-	mpeg    byte   // mpeg version
-	size    int    // frame size
-	sr      uint32 // sample rate
-	sri     byte   // sample rate index
-	padding int    // padding
-	version int    // used to determine mpeg & layer combo
+// Frame has info
+type Frame struct {
+	Br      uint32 // bitrate
+	Bri     byte   // bitrate index
+	Layer   byte   // layer version
+	Mpeg    byte   // mpeg version
+	Size    int    // frame size
+	Sr      uint32 // sample rate
+	Sri     byte   // sample rate index
+	Padding int    // padding
+	Version int    // used to determine mpeg & layer combo
 }
 
-func (f *frame) findVersion() error {
+func (f *Frame) findVersion() error {
 
 	x := 0
 
-	if f.layer > 3 || f.layer < 1 || f.mpeg > 3 || f.mpeg == 1 {
+	if f.Layer > 3 || f.Layer < 1 || f.Mpeg > 3 || f.Mpeg == 1 {
 		return errors.New("could not find version, missing mpeg and layer info")
 	}
 
-	switch f.mpeg {
+	switch f.Mpeg {
 	case 3:
-		x = 2
+		x = 3
 	case 2:
-		x = 1
+		x = 2
 	default:
-		x = 0
+		x = 1
 	}
 
-	f.version = (x * 3) + int(f.layer)
+	f.Version = (x * 3) + int(f.Layer)
+
+	log.Println(f.Mpeg)
+	log.Println(f.Layer)
+	log.Println(f.Version)
+	// log.Printf("mpeg: %x, %layer: %x, version: %x", f.Mpeg, f.Layer, f.Version)
 
 	return nil
 
 }
 
-func (f *frame) findBitrate() error {
+func (f *Frame) findBitrate() error {
 
 	var b byte
 
@@ -225,7 +242,7 @@ func (f *frame) findBitrate() error {
 		0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256, 0,
 		0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0}
 
-	switch f.version {
+	switch f.Version {
 	case 9:
 		b = 0
 	case 8:
@@ -240,13 +257,13 @@ func (f *frame) findBitrate() error {
 		return errors.New("unable to find bitrate: frame version is missing")
 	}
 
-	f.br = brtable[f.bri+b] * 1000
+	f.Br = brtable[f.Bri+b] * 1000
 
 	return nil
 
 }
 
-func (f *frame) findSampleRate() error {
+func (f *Frame) findSampleRate() error {
 
 	srtable := [...]uint32{
 		44100, 48000, 32000, 0, // mpeg1
@@ -255,7 +272,7 @@ func (f *frame) findSampleRate() error {
 
 	var n byte
 
-	switch f.version {
+	switch f.Version {
 	case 9, 8, 7: // mpeg 0 | layers 1,2,3
 		n = 0
 	case 6, 5, 4: // mpeg 2 | layers 1,2,3
@@ -266,28 +283,34 @@ func (f *frame) findSampleRate() error {
 		return errors.New("unable to find sample rate: frame version is missing")
 	}
 
-	f.sr = srtable[f.sri+n]
+	f.Sr = srtable[f.Sri+n]
 	return nil
 
 }
 
-func (f *frame) calculateSize() error {
+func (f *Frame) calculateSize() error {
 
-	if f.br == 0 || f.sr == 0 || f.padding == 0 {
-		return errors.New("unable to calculate size: frame information is missing")
+	if f.Br == 0 || f.Sr == 0 || f.Padding == 0 {
+
+		bitrate := strconv.Itoa(int(f.Br))
+		samplerate := strconv.Itoa(int(f.Sr))
+		padding := strconv.Itoa(f.Padding)
+
+		log.Printf("bitrate %v, sample rate %v, padding %v", bitrate, samplerate, padding)
+		// return errors.New("unable to calculate size: frame information is missing")
 	}
 
-	switch f.version {
+	switch f.Version {
 	case 9:
-		f.size = (int(12*f.br/f.sr) * 4) + (f.padding * 4)
+		f.Size = (int(12*f.Br/f.Sr) * 4) + (f.Padding * 4)
 	case 8, 7:
-		f.size = int(144*f.br/f.sr) + f.padding
+		f.Size = int(144*f.Br/f.Sr) + f.Padding
 	case 6, 3:
-		f.size = (int(12*f.br/f.sr) * 4) + (f.padding * 4)
+		f.Size = (int(12*f.Br/f.Sr) * 4) + (f.Padding * 4)
 	case 5, 2:
-		f.size = int(144*f.br/f.sr) + f.padding
+		f.Size = int(144*f.Br/f.Sr) + f.Padding
 	case 4, 1:
-		f.size = int(72*f.br/f.sr) + f.padding
+		f.Size = int(72*f.Br/f.Sr) + f.Padding
 	default:
 		return errors.New("unable to calculate size: frame version is missing")
 	}

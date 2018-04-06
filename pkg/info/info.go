@@ -3,6 +3,7 @@ package info
 import (
 	"errors"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -34,11 +35,13 @@ func GetData(filename string) (Data, error) {
 
 	validFile := util.ValidFile(filename)
 	if !validFile {
+		log.Println("error in GetData 1")
 		return data, errors.New("not a valid file")
 	}
 
 	d, err := os.Open(filename)
 	if err != nil {
+		log.Println("error in GetData 2")
 		return data, err
 	}
 
@@ -50,6 +53,7 @@ func GetData(filename string) (Data, error) {
 		if err := track.Decode(&frame, &s); err != nil {
 			// Return all errors except EOF. End the loop on a EOF.
 			if err.Error() != "EOF" {
+				log.Println("error in GetData 3")
 				return data, err
 			}
 			break
