@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RootCmd is the command that starts everthing.
+// RootCmd is the command that starts everything.
 var RootCmd = &cobra.Command{
 	Use:   "icii",
 	Short: "broadcast to icecast using icii",
@@ -16,7 +16,7 @@ var RootCmd = &cobra.Command{
 	},
 }
 
-// Execute is used my icii.go to start the program.
+// Execute is used by icii.go to start the program.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
