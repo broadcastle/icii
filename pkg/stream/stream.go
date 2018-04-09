@@ -31,8 +31,8 @@ type Config struct {
 
 var version = 1
 
-// File streams a file from filename.
-func (c Config) File(filename string) error {
+// Play streams a file from filename.
+func (c Config) Play(filename string) error {
 
 	info, err := mpeg.GetInfo(filename)
 	if err != nil {

@@ -129,8 +129,6 @@ func isValidFrameHeader(header []byte) (int, bool) {
 	return 0, true
 }
 
-//// NEED TO REMOVE
-
 // SeekTo1StFrame ...
 func SeekTo1StFrame(f os.File) int64 {
 
@@ -211,7 +209,11 @@ func GetFrames(f os.File, framesToRead int) ([]byte, error) {
 			numBytesToRead = framelength - len(headers) // + crc
 		}
 
-		oldpos, _ := f.Seek(0, 1)
+		oldpos, err := f.Seek(0, 1)
+		if err != nil {
+			return nil, err
+		}
+
 		br, _ := f.Seek(int64(numBytesToRead), 1)
 		bytesRead = int(br - oldpos)
 
@@ -239,100 +241,3 @@ func GetFrames(f os.File, framesToRead int) ([]byte, error) {
 	}
 	return buf, nil
 }
-
-// func GetFrames(f os.File, framesToRead int) ([]byte, error) {
-// 	var buf []byte
-// 	var err error
-
-// 	framesRead, bytesRead := 0, 0
-// 	headers := make([]byte, 4)
-// 	headers2 := make([]byte, 4)
-// 	// inSync := true
-// 	// inSync := false
-// 	numBytesToRead := 0
-
-// 	for framesRead < framesToRead {
-
-// 		bytesRead, err = f.Read(headers)
-// 		if err != nil && err != io.EOF {
-// 			return nil, err
-// 		}
-
-// 		//input file has ended
-// 		if bytesRead < len(headers) {
-// 			break
-// 		}
-
-// 		// // Check if frame header is valid, if not, go back.
-// 		// if _, ok := isValidFrameHeader(headers); !ok {
-// 		// 	// if inSync {
-// 		// 	// 	pos, _ := f.Seek(0, 1)
-// 		// 	// 	logger.Log("Bad MPEG frame at offset "+strconv.Itoa(int(pos-4))+
-// 		// 	// 		", resyncing...", logger.LOG_DEBUG)
-// 		// 	// }
-// 		// 	// inSync = false
-// 		// 	f.Seek(-3, 1)
-// 		// 	continue
-// 		// }
-
-// 		framelength := getFrameSize(headers)
-// 		// if framelength == 0 || framelength > 5000 {
-// 		// 	// if inSync {
-// 		// 	// 	pos, _ := f.Seek(0, 1)
-// 		// 	// 	logger.Log("Bad MPEG frame at offset "+strconv.Itoa(int(pos-4))+
-// 		// 	// 		", resyncing...", logger.LOG_DEBUG)
-// 		// 	// }
-// 		// 	// inSync = false
-// 		// 	f.Seek(-3, 1)
-// 		// 	continue
-// 		// }
-
-// 		numBytesToRead = 0
-// 		if framelength > len(headers) {
-// 			numBytesToRead = framelength - len(headers) // + crc
-// 		}
-
-// 		oldpos, _ := f.Seek(0, 1)
-// 		br, _ := f.Seek(int64(numBytesToRead), 1)
-// 		bytesRead = int(br - oldpos)
-
-// 		bbr, _ := f.Read(headers2)
-// 		bytesRead = bytesRead + int(bbr)
-
-// 		f.Seek(int64(-bytesRead), 1)
-// 		// if _, ok := isValidFrameHeader(headers2); !ok {
-// 		// 	// if inSync {
-// 		// 	// 	pos, _ := f.Seek(0, 1)
-// 		// 	// 	logger.Log("Bad MPEG frame at offset "+strconv.Itoa(int(pos-4))+", resyncing...", logger.LOG_DEBUG)
-// 		// 	// }
-// 		// 	// inSync = false
-// 		// 	f.Seek(-3, 1)
-// 		// 	continue
-// 		// }
-
-// 		// // from now on, frame is considered valid
-// 		// if !inSync {
-// 		// 	pos, _ := f.Seek(0, 1)
-// 		// 	logger.Log("Resynced at offset "+strconv.Itoa(int(pos-4)), logger.LOG_DEBUG)
-// 		// }
-// 		// inSync = true
-
-// 		// copy frame header to out buffer
-// 		buf = append(buf, headers...)
-
-// 		// read raw frame data
-// 		lbuf := make([]byte, numBytesToRead)
-// 		bytesRead, err = f.Read(lbuf)
-// 		if err != nil {
-// 			if err != io.EOF {
-// 				return nil, err
-// 			}
-// 		}
-// 		buf = append(buf, lbuf[0:bytesRead]...)
-// 		if bytesRead < numBytesToRead { // the // input // file // has // ended
-// 			break
-// 		}
-// 		framesRead = framesRead + 1
-// 	}
-// 	return buf, nil
-// }
