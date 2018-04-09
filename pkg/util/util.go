@@ -2,21 +2,33 @@ package util
 
 import (
 	"os"
-
-	filetype "gopkg.in/h2non/filetype.v1"
+	"strings"
 )
 
-// ValidFile returns whether a file is valid or not.
-func ValidFile(filename string) bool {
+// FileError holds a message.
+type FileError struct {
+	Msg string
+}
 
-	file, err := os.Open(filename)
+func (e *FileError) Error() string {
+	return e.Msg
+}
+
+// FileExists checks if name exists.
+func FileExists(name string) bool {
+	finfo, err := os.Stat(name)
 	if err != nil {
-		// log.Println(err)
+		// no such file or dir
 		return false
 	}
+	return !finfo.IsDir()
+}
 
-	header := make([]byte, 261)
-	file.Read(header)
-
-	return filetype.IsMIME(header, "audio/mpeg")
+// Basename returns the basename of s.
+func Basename(s string) string {
+	n := strings.LastIndexByte(s, '.')
+	if n >= 0 {
+		return s[:n]
+	}
+	return s
 }

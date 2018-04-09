@@ -2,20 +2,26 @@
 
 
 [[projects]]
+  name = "github.com/go-ini/ini"
+  packages = ["."]
+  revision = "5e9692864e22d02ac79e2fa499cffb00520b4fea"
+  version = "v1.34.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kardianos/osext"
+  packages = ["."]
+  revision = "ae77be60afb1dcacde03767a8c37337fad28ac14"
+
+[[projects]]
   branch = "master"
   name = "github.com/tcolgate/mp3"
   packages = [".","internal/data"]
   revision = "e79c5a46d30097711c17ac6dee3b1839473cdca8"
 
-[[projects]]
-  name = "gopkg.in/h2non/filetype.v1"
-  packages = [".","matchers","types"]
-  revision = "cc14fdc9ca0e4c2bafad7458f6ff79fd3947cfbb"
-  version = "v1.0.5"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "092a3ef6ad658b73744068a9cb3cdb9a47532d31a911154d6c346e7415c63af3"
+  inputs-digest = "075a7f23e08dd91ecac63f23f43b6eded7efe5f2e2e24adf6c0163e722a2323e"
   solver-name = "gps-cdcl"
   solver-version = 1

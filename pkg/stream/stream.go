@@ -1,165 +1,143 @@
 package stream
 
 import (
-	"bytes"
+	"errors"
 	"log"
-	"net/http"
-	"net/url"
+	"net"
 	"os"
 	"strconv"
 	"time"
 
-	"broadcastle.co/code/icii/pkg/frames"
-	"broadcastle.co/code/icii/pkg/info"
+	"broadcastle.co/code/icii/pkg/config"
+	"broadcastle.co/code/icii/pkg/logger"
+	"broadcastle.co/code/icii/pkg/mpeg"
+	"broadcastle.co/code/icii/pkg/network"
 )
 
-// Buffer is how many seconds should be buffered.
-var Buffer = 3
+// Abort tells us if we should abort.
+var Abort bool
 
-// Stream holds the server information.
-type Stream struct {
-	Name        string
-	Description string
-	Mount       string
-	User        string
-	Password    string
-	Host        string
-	Genre       string
-	Website     string
-}
+// File streams filename to icecast.
+func File(filename string) error {
 
-// Create a stream using the supplied information.
-//
-// Create returns an error if something went wrong during the creation process.
-func Create(name, description, genre, host, website, mountpoint, user, password string) (Stream, error) {
+	var sock net.Conn
 
-	if mountpoint[0:1] == "/" {
-		mountpoint = mountpoint[1:]
+	cleanUp := func(err error) {
+		log.Println(err)
+		network.Close(sock)
 	}
 
-	s := Stream{
-		Name:        name,
-		Description: description,
-		Mount:       mountpoint,
-		User:        user,
-		Password:    password,
-		Host:        host,
-		Website:     website,
-	}
+	logger.Log("Checking file: "+filename+"...", logger.LOG_INFO)
 
-	return s, nil
-}
-
-// File sends the file.
-func (s Stream) File(filename string) error {
-
-	// GET FILE INFORMATION
-	i, err := info.GetData(filename)
+	i, err := mpeg.GetInfo(filename)
 	if err != nil {
-		log.Println("GetData error")
 		return err
 	}
 
-	file, err := os.Open(filename)
+	sock, err = network.ConnectServer(config.Cfg.Host, config.Cfg.Port, i.BitRate, i.SampleRate, i.Channels)
 	if err != nil {
-		log.Println("os.OpenError in s.File")
+		logger.Log("Cannot connect to server", logger.LOG_ERROR)
 		return err
 	}
 
-	framesSent := 0
+	f, err := os.Open(filename)
+	if err != nil {
+		cleanUp(err)
+		return err
+	}
+
+	defer f.Close()
+
+	// if config.Cfg.UpdateMetadata {
+	// 	go metadata.GetTagsFFMPEG(filename)
+	// 	// cuefile := util.Basename(filename) + ".cue"
+	// 	// cuesheet.Load(cuefile)
+	// }
+
+	logger.Log("Streaming file: "+filename+"...", logger.LOG_INFO)
+	logger.TermLn("CTRL-C to stop", logger.LOG_INFO)
+
+	// get number of frames to read in 1 iteration
 	timeBegin := time.Now()
 
-	// LOOP THROUGH FRAMES
-	for framesSent < len(i.Frames) {
+	// OLD BUT WORKS
+	mpeg.SeekTo1StFrame(*f)
+	framesSent := 0
 
+	for framesSent < i.NumberOfFrames {
 		sendBegin := time.Now()
 
-		buffer, err := frames.Get(*file, i.FramesToRead)
+		lbuf, err := mpeg.GetFrames(*f, i.FramesToRead)
 		if err != nil {
-			log.Println("frames.Get")
+			logger.Log("Error reading data stream", logger.LOG_ERROR)
+			cleanUp(err)
 			return err
 		}
 
-		// SEND THE FILE
-
-		if err := s.sendBytes(buffer, i); err != nil {
-			log.Println("s.sendBytes")
+		if err := network.Send(sock, lbuf); err != nil {
+			cleanUp(err)
+			logger.Log("Error sending data stream", logger.LOG_ERROR)
 			return err
 		}
 
 		framesSent = framesSent + i.FramesToRead
 
-		bufferSent := i.BufferSent(framesSent, timeBegin)
+		timeElapsed := int(float64((time.Now().Sub(timeBegin)).Seconds()) * 1000)
+		timeSent := int(float64(framesSent) * float64(i.SPF) / float64(i.SampleRate) * 1000)
 
-		pause := timePause(bufferSent, sendBegin)
+		bufferSent := 0
+		if timeSent > timeElapsed {
+			bufferSent = timeSent - timeElapsed
+		}
 
-		time.Sleep(pause)
+		if timeElapsed > 1500 {
+			logger.Term("Frames: "+strconv.Itoa(framesSent)+"/"+strconv.Itoa(i.NumberOfFrames)+"  Time: "+
+				strconv.Itoa(timeElapsed/1000)+"/"+strconv.Itoa(timeSent/1000)+"s  Buffer: "+
+				strconv.Itoa(bufferSent)+"ms  Frames/Bytes: "+strconv.Itoa(i.FramesToRead)+"/"+strconv.Itoa(len(lbuf)), logger.LOG_INFO)
+		}
 
+		timePause := sendLag(sendBegin, bufferSent, config.Cfg.BufferSize)
+
+		if Abort {
+			err := errors.New("aborted by user")
+			cleanUp(err)
+			return err
+		}
+
+		time.Sleep(time.Duration(time.Millisecond) * time.Duration(timePause))
 	}
 
-	sleep := i.TimeBetweenTracks(timeBegin)
-
-	time.Sleep(sleep)
+	// pause to clear up the buffer
+	pause := i.TimeBetweenTracks(timeBegin)
+	logger.Log("Pausing for "+pause.String()+"ms...", logger.LOG_DEBUG)
+	time.Sleep(pause)
 
 	return nil
 }
 
-// SendBytes sends the byte to the stream.
-func (s Stream) sendBytes(b []byte, d info.Data) error {
+// func getBuffer(bufs io.Reader...) ([]byte, error) {
+// 	var b []byte
+// 	for _, d := range bufs {
+// 		f, err := ioutil.ReadAll(d)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
 
-	link := s.Host + "/" + s.Mount
+// 	return b, nil
+// }
 
-	_, err := url.ParseRequestURI(link)
-	if err != nil {
-		return err
-	}
+func sendLag(b time.Time, bufferSent int, bufferSize int) int {
 
-	client := &http.Client{}
-	r := bytes.NewReader(b)
-
-	req, err := http.NewRequest("PUT", link, r)
-	if err != nil {
-		return err
-	}
-
-	audioInfo := "samplerate=" + strconv.Itoa(d.SampleRate) + ";channels=" + strconv.Itoa(d.Channels)
-
-	req.SetBasicAuth(s.User, s.Password)
-	req.Header.Set("content-type", "audio/mpeg")
-	req.Header.Set("ice-public", "0")
-	req.Header.Set("ice-name", s.Name)
-	req.Header.Set("ice-description", s.Description)
-	req.Header.Set("ice-genre", s.Genre)
-	req.Header.Set("ice-website", s.Website)
-	req.Header.Set("ice-audio-info", audioInfo)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	log.Println(resp)
-
-	defer resp.Body.Close()
-
-	return nil
-
-}
-
-func timePause(sent int, send time.Time) time.Duration {
-
-	x := 975
+	lag := int(float64((time.Now().Sub(b)).Seconds()) * 1000)
 
 	switch {
-	case sent < (Buffer - 100):
-		x = 900
-	case sent > Buffer:
-		x = 1100
+	case bufferSent < (bufferSize - 100):
+		return 800 - lag
+	case bufferSent > bufferSize:
+		return 1100 - lag
+	default:
+		return 975 - lag
 	}
-
-	lag := float64((time.Now().Sub(send)).Seconds()) * 1000
-	pause := x - int(lag)
-
-	return time.Duration(time.Millisecond) * time.Duration(pause)
 
 }
