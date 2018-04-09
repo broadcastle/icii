@@ -5,11 +5,9 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
 	"time"
 
 	"broadcastle.co/code/icii/pkg/config"
-	"broadcastle.co/code/icii/pkg/logger"
 	"broadcastle.co/code/icii/pkg/mpeg"
 	"broadcastle.co/code/icii/pkg/network"
 )
@@ -27,7 +25,7 @@ func File(filename string) error {
 		network.Close(sock)
 	}
 
-	logger.Log("Checking file: "+filename+"...", logger.LOG_INFO)
+	// logger.Log("Checking file: "+filename+"...", logger.LOG_INFO)
 
 	i, err := mpeg.GetInfo(filename)
 	if err != nil {
@@ -36,7 +34,7 @@ func File(filename string) error {
 
 	sock, err = network.ConnectServer(config.Cfg.Host, config.Cfg.Port, i.BitRate, i.SampleRate, i.Channels)
 	if err != nil {
-		logger.Log("Cannot connect to server", logger.LOG_ERROR)
+		// logger.Log("Cannot connect to server", logger.LOG_ERROR)
 		return err
 	}
 
@@ -54,8 +52,8 @@ func File(filename string) error {
 	// 	// cuesheet.Load(cuefile)
 	// }
 
-	logger.Log("Streaming file: "+filename+"...", logger.LOG_INFO)
-	logger.TermLn("CTRL-C to stop", logger.LOG_INFO)
+	// logger.Log("Streaming file: "+filename+"...", logger.LOG_INFO)
+	// logger.TermLn("CTRL-C to stop", logger.LOG_INFO)
 
 	// get number of frames to read in 1 iteration
 	timeBegin := time.Now()
@@ -69,14 +67,14 @@ func File(filename string) error {
 
 		lbuf, err := mpeg.GetFrames(*f, i.FramesToRead)
 		if err != nil {
-			logger.Log("Error reading data stream", logger.LOG_ERROR)
+			// logger.Log("Error reading data stream", logger.LOG_ERROR)
 			cleanUp(err)
 			return err
 		}
 
 		if err := network.Send(sock, lbuf); err != nil {
 			cleanUp(err)
-			logger.Log("Error sending data stream", logger.LOG_ERROR)
+			// logger.Log("Error sending data stream", logger.LOG_ERROR)
 			return err
 		}
 
@@ -90,11 +88,11 @@ func File(filename string) error {
 			bufferSent = timeSent - timeElapsed
 		}
 
-		if timeElapsed > 1500 {
-			logger.Term("Frames: "+strconv.Itoa(framesSent)+"/"+strconv.Itoa(i.NumberOfFrames)+"  Time: "+
-				strconv.Itoa(timeElapsed/1000)+"/"+strconv.Itoa(timeSent/1000)+"s  Buffer: "+
-				strconv.Itoa(bufferSent)+"ms  Frames/Bytes: "+strconv.Itoa(i.FramesToRead)+"/"+strconv.Itoa(len(lbuf)), logger.LOG_INFO)
-		}
+		// if timeElapsed > 1500 {
+		// 	logger.Term("Frames: "+strconv.Itoa(framesSent)+"/"+strconv.Itoa(i.NumberOfFrames)+"  Time: "+
+		// 		strconv.Itoa(timeElapsed/1000)+"/"+strconv.Itoa(timeSent/1000)+"s  Buffer: "+
+		// 		strconv.Itoa(bufferSent)+"ms  Frames/Bytes: "+strconv.Itoa(i.FramesToRead)+"/"+strconv.Itoa(len(lbuf)), logger.LOG_INFO)
+		// }
 
 		timePause := sendLag(sendBegin, bufferSent, config.Cfg.BufferSize)
 
@@ -109,7 +107,7 @@ func File(filename string) error {
 
 	// pause to clear up the buffer
 	pause := i.TimeBetweenTracks(timeBegin)
-	logger.Log("Pausing for "+pause.String()+"ms...", logger.LOG_DEBUG)
+	// logger.Log("Pausing for "+pause.String()+"ms...", logger.LOG_DEBUG)
 	time.Sleep(pause)
 
 	return nil

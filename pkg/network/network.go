@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"broadcastle.co/code/icii/pkg/config"
-	"broadcastle.co/code/icii/pkg/logger"
 )
 
 // Connected returns if were connected to the host.
@@ -46,7 +45,7 @@ func Recv(sock net.Conn) ([]byte, error) {
 	n, err := sock.Read(buf)
 	//fmt.Println(n, err, string(buf), len(buf))
 	if err != nil {
-		logger.Log(err.Error(), logger.LOG_ERROR)
+		// logger.Log(err.Error(), logger.LOG_ERROR)
 		return nil, err
 	}
 	return buf[0:n], err
@@ -69,7 +68,7 @@ func ConnectServer(host string, port int, br float64, sr, ch int) (net.Conn, err
 	if config.Cfg.ServerType == "shoutcast" {
 		port++
 	}
-	logger.Log("Connecting to "+config.Cfg.ServerType+" at "+host+":"+strconv.Itoa(port)+"...", logger.LOG_DEBUG)
+	// logger.Log("Connecting to "+config.Cfg.ServerType+" at "+host+":"+strconv.Itoa(port)+"...", logger.LOG_DEBUG)
 	sock, err := Connect(host, port)
 
 	if err != nil {
@@ -101,7 +100,7 @@ func ConnectServer(host string, port int, br float64, sr, ch int) (net.Conn, err
 		"\r\n"
 
 	if err := Send(sock, []byte(headers)); err != nil {
-		logger.Log("Error sending headers", logger.LOG_ERROR)
+		// logger.Log("Error sending headers", logger.LOG_ERROR)
 		Connected = false
 		return sock, err
 	}
@@ -117,7 +116,7 @@ func ConnectServer(host string, port int, br float64, sr, ch int) (net.Conn, err
 		return sock, errors.New("Invalid Icecast response: " + string(resp))
 	}
 
-	logger.Log("Server connect successful", logger.LOG_INFO)
+	// logger.Log("Server connect successful", logger.LOG_INFO)
 	Connected = true
 	csock = sock
 
