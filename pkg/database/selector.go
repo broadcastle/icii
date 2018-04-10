@@ -1,8 +1,6 @@
 package database
 
 import (
-	"errors"
-
 	"github.com/jinzhu/gorm"
 )
 
@@ -28,7 +26,5 @@ func (c Config) Connect() (*gorm.DB, error) {
 	default:
 		return openMysql(c.User, c.Password, c.Host, c.Port, c.Database)
 	}
-
-	return nil, errors.New("unable to connect to a database of any kind")
 
 }

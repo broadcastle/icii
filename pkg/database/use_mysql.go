@@ -22,7 +22,7 @@ func openMysql(user string, password string, host string, port int, database str
 		return nil, err
 	}
 
-	db.AutoMigrate(&Song{})
+	initIciiTables(db)
 
 	return db, nil
 }

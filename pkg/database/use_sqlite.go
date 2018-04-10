@@ -19,7 +19,7 @@ func tempDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&Song{})
+	initIciiTables(db)
 
 	return db, nil
 

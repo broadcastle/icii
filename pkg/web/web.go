@@ -46,19 +46,23 @@ func Start(port int) {
 	/////////////
 
 	// API
-	av := "/api/v1/"
+	a := e.Group("/api/v1")
 
-	songs := av + "song"
+	//// Songs
+	s := a.Group("/song")
 
-	// api/v1/song
-	e.PUT(songs, uploadSong)
+	s.PUT("/", songCreate)
+	s.PUT("/:id", songUpdate)
+	s.GET("/:id", songGet)
+	s.DELETE("/:id", songDelete)
 
-	// api/v1/song/:id
-	songID := songs + "/:id"
+	//// Users
+	u := a.Group("/user")
 
-	e.GET(songID, getSong)
-	e.PUT(songID, updateSong)
-	e.DELETE(songID, deleteSong)
+	u.PUT("/", userCreate)
+	// u.PUT("/:id", notImplemented)
+	// u.GET("/:id", notImplemented)
+	// u.DELETE("/:id", notImplemented)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 
@@ -72,4 +76,8 @@ func displayPage(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "index", w)
+}
+
+func notImplemented(c echo.Context) error {
+	return c.JSON(http.StatusNotFound, "this has not been implemented yet")
 }

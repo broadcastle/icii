@@ -8,8 +8,26 @@ import (
 	"github.com/labstack/echo"
 )
 
-func getSong(c echo.Context) error {
+// Create a song entry in the database.
+func songCreate(c echo.Context) error {
 
+	//// Bind the sent data to a entry.
+	var song database.Song
+
+	if err := c.Bind(&song); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	//// Create the database and return the result.
+	db.Create(&song)
+
+	return c.JSON(http.StatusOK, song)
+}
+
+// Retrieve a song when given an ID.
+func songGet(c echo.Context) error {
+
+	//// Get the ID as an integer.
 	i := c.Param("id")
 
 	id, err := strconv.Atoi(i)
@@ -17,6 +35,7 @@ func getSong(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	//// Find the song with that ID and return the data.
 	var song database.Song
 
 	db.First(&song, id)
@@ -28,21 +47,10 @@ func getSong(c echo.Context) error {
 	return c.JSON(http.StatusOK, song)
 }
 
-func uploadSong(c echo.Context) error {
+// Update the song at the given ID.
+func songUpdate(c echo.Context) error {
 
-	var song database.Song
-
-	if err := c.Bind(&song); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	db.Create(&song)
-
-	return c.JSON(http.StatusOK, song)
-}
-
-func updateSong(c echo.Context) error {
-
+	//// Get the ID as an integer
 	i := c.Param("id")
 
 	id, err := strconv.Atoi(i)
@@ -50,8 +58,8 @@ func updateSong(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	//// Get the original song info.
 	var original database.Song
-	var update database.Song
 
 	db.First(&original, id)
 
@@ -59,20 +67,23 @@ func updateSong(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, "song does not exist")
 	}
 
+	//// Bind the updated information to a Song struct.
+	var update database.Song
 	if err := c.Bind(&update); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	//// Update the original song and return the result.
 	db.Model(&original).Updates(update)
-
-	// db.First(&original, id)
 
 	return c.JSON(http.StatusOK, original)
 
 }
 
-func deleteSong(c echo.Context) error {
+// Delete the song at the given ID.
+func songDelete(c echo.Context) error {
 
+	// Get the ID as an iteger and check that it's not 0.
 	i := c.Param("id")
 
 	id, err := strconv.Atoi(i)
@@ -80,6 +91,11 @@ func deleteSong(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	if id == 0 {
+		return c.JSON(http.StatusMethodNotAllowed, "an id is needed")
+	}
+
+	// Query the first song that has the ID and delete it.
 	var song database.Song
 
 	db.First(&song, id)

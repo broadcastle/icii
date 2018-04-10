@@ -16,7 +16,7 @@ func openPostgres(user string, password string, host string, port int, database 
 		return nil, err
 	}
 
-	db.AutoMigrate(&Song{})
+	initIciiTables(db)
 
 	return db, nil
 }
