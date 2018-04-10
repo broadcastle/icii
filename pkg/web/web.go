@@ -36,7 +36,7 @@ func Start(port int) {
 	e.Use(middleware.Gzip())
 
 	// Set up the renderer
-	e.Renderer = &Template{templates: template.Must(template.ParseGlob("public/views/*.html"))}
+	e.Renderer = &Template{templates: template.Must(template.ParseGlob("templates/*"))}
 
 	// Frontpage
 	e.GET("/", displayPage)
