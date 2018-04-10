@@ -88,7 +88,6 @@ func (c Config) Play(filename string) error {
 
 // Connect connects to the server in the config.
 func (c *Config) Connect(info mpeg.Info) error {
-	// return errors.New("c.Connect is not written")
 
 	if c.Connected {
 		return nil
@@ -154,7 +153,6 @@ func (c *Config) Send(buffer []byte) error {
 
 // Receive returns the response from a c.Connection.
 func (c Config) Receive() ([]byte, error) {
-	// return nil, errors.New("c.Receive is not written")
 
 	buffer := make([]byte, 1024)
 	n, err := c.Connection.Read(buffer)
