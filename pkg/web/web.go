@@ -10,6 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/spf13/viper"
 )
 
 var db *gorm.DB
@@ -51,6 +52,8 @@ func Start(port int) {
 	//// Songs
 	s := a.Group("/song")
 
+	s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
+
 	s.PUT("/", songCreate)
 	s.PUT("/:id", songUpdate)
 	s.GET("/:id", songGet)
@@ -60,6 +63,7 @@ func Start(port int) {
 	u := a.Group("/user")
 
 	u.PUT("/", userCreate)
+	u.PUT("/login", userLogin)
 	// u.PUT("/:id", notImplemented)
 	// u.GET("/:id", notImplemented)
 	// u.DELETE("/:id", notImplemented)
