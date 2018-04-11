@@ -20,7 +20,7 @@ func userCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Find if a user is already registed with that email.
+	//// Find if a user is already registered with that email.
 	var found database.User
 
 	db.Where("email = ?", user.Email).First(&found)

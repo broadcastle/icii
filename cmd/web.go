@@ -51,7 +51,7 @@ func initConfig() {
 
 		d := configCreate{temp: true, out: "/tmp"}
 		if err := d.create(); err != nil {
-			fmt.Printf("unable to create temporary file: ", err.Error())
+			fmt.Printf("unable to create temporary file: %s", err.Error())
 			os.Exit(1)
 		}
 		config = path.Join(d.out, "config.toml")
