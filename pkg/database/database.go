@@ -32,7 +32,7 @@ type User struct {
 	Name          string          `json:"name"`
 	Email         string          `json:"email"`
 	Password      string          `json:"password"`
-	Organizations []*Organization `gorm:"many2many:user_organizations;",json:"organizations"`
+	Organizations []*Organization `gorm:"many2many:user_organizations;" json:"organizations"`
 }
 
 // Organization ...
@@ -40,7 +40,7 @@ type Organization struct {
 	gorm.Model
 	Name  string  `json:"name"`
 	Slug  string  `json:"slug"`
-	Users []*User `gorm:"many2many:user_organizations;",json:"users"`
+	Users []*User `gorm:"many2many:user_organizations;" json:"users"`
 	Songs []Song  `json:"songs"`
 }
 
