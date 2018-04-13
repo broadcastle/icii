@@ -2,6 +2,7 @@ package web
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -10,23 +11,33 @@ import (
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/bogem/id3v2"
 	"github.com/labstack/echo"
+	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 )
 
 // Process the audio file that was uploaded.
-func processSong(filename string, info database.Song) {
-	//// Create the database entry
+func processSong(location string, info database.Song, filename string) {
 
-	tag, err := id3v2.Open(filename, id3v2.Options{Parse: true})
+	//// Get the tags from the temporary file.
+
+	tag, err := id3v2.Open(location, id3v2.Options{Parse: true})
 	if err != nil {
 
-		os.Remove(filename)
+		log.Println(err)
+
+		os.Remove(location)
 
 		return
 	}
 
-	if info.Title == "" {
+	//// The title can not be empty. The others can though.
+	switch {
+	case info.Title != "":
+	case info.Title == "" && tag.Title() != "":
 		info.Title = tag.Title()
+	default:
+		info.Title = filename
+
 	}
 
 	if info.Artist == "" {
@@ -45,11 +56,9 @@ func processSong(filename string, info database.Song) {
 		info.Year = tag.Year()
 	}
 
-	if info.Title == "" && info.Artist == "" {
-		info.Title = path.Base(filename)
-	}
+	info.Location = location
 
-	info.Location = filename
+	//// Create the database entry
 
 	db.Create(&info)
 }
@@ -81,9 +90,20 @@ func songCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	// Destination
-	tmp := viper.GetString("files.location")
-	tmp = path.Join(tmp, file.Filename)
+	//// Prepare a new name for the file.
+
+	// Generate UUID
+	u := uuid.NewV4()
+
+	// Name the destination
+	t := viper.GetString("files.temporary")
+	ext := path.Ext(file.Filename)
+
+	tmp := path.Join(t, u.String()+ext)
+
+	log.Println(tmp)
+
+	//// Create the destination
 	dst, err := os.Create(tmp)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -93,8 +113,8 @@ func songCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Process the song.
-	go processSong(tmp, song)
+	//// Process the song. Let the user know the song is being processed.
+	go processSong(tmp, song, file.Filename)
 
 	return c.JSON(http.StatusOK, "song is being processed")
 }
