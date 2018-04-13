@@ -9,11 +9,13 @@ import (
 // Song is the information needed to store a song.
 type Song struct {
 	gorm.Model
-	Name           string  `json:"name"`
-	Artist         string  `json:"artist"`
 	Album          string  `json:"album"`
+	Artist         string  `json:"artist"`
+	Genre          string  `json:"genre"`
 	Length         float64 `json:"length"`
 	Location       string  `json:"location"`
+	Title          string  `json:"title"`
+	Year           string  `json:"year"`
 	OrganizationID uint    `json:"organization_id"`
 	UserID         uint    `json:"uploader"`
 	Stats          Statistics

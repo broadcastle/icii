@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"broadcastle.co/code/icii/pkg/database"
+	"github.com/bogem/id3v2"
 	"github.com/labstack/echo"
 	"github.com/spf13/viper"
 )
@@ -15,6 +16,38 @@ import (
 // Process the audio file that was uploaded.
 func processSong(filename string, info database.Song) {
 	//// Create the database entry
+
+	tag, err := id3v2.Open(filename, id3v2.Options{Parse: true})
+	if err != nil {
+
+		os.Remove(filename)
+
+		return
+	}
+
+	if info.Title == "" {
+		info.Title = tag.Title()
+	}
+
+	if info.Artist == "" {
+		info.Artist = tag.Artist()
+	}
+
+	if info.Album == "" {
+		info.Album = tag.Album()
+	}
+
+	if info.Genre == "" {
+		info.Genre = tag.Genre()
+	}
+
+	if info.Year == "" {
+		info.Year = tag.Year()
+	}
+
+	if info.Title == "" && info.Artist == "" {
+		info.Title = path.Base(filename)
+	}
 
 	info.Location = filename
 
@@ -27,14 +60,12 @@ func songCreate(c echo.Context) error {
 	//// Bind the sent data to a entry.
 	var song database.Song
 
-	name := c.FormValue("name")
-	album := c.FormValue("album")
-
-	user := getJwtID(c)
-
-	song.Name = name
-	song.Album = album
-	song.UserID = user
+	song.Title = c.FormValue("title")
+	song.Album = c.FormValue("album")
+	song.Artist = c.FormValue("artist")
+	song.Year = c.FormValue("year")
+	song.Genre = c.FormValue("genre")
+	song.UserID = getJwtID(c)
 
 	//// Copy the audio file to a temporary folder
 
