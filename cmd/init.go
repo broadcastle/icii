@@ -26,13 +26,14 @@ var initCmd = &cobra.Command{
 }
 
 type configCreate struct {
-	host string
-	user string
-	pass string
-	port int
-	post bool
-	temp bool
-	out  string
+	host  string
+	user  string
+	pass  string
+	port  int
+	post  bool
+	temp  bool
+	out   string
+	files string
 }
 
 var db configCreate
@@ -47,6 +48,7 @@ func init() {
 	initCmd.Flags().StringVarP(&db.pass, "password", "p", "", "database user password")
 	initCmd.Flags().StringVarP(&db.user, "user", "u", "", "database user name")
 	initCmd.Flags().BoolVar(&db.temp, "temp", false, "create a temporary database")
+	initCmd.Flags().StringVar(&db.files, "files", "/tmp", "location where audio files are stored")
 
 }
 
@@ -68,11 +70,14 @@ func (d configCreate) create() error {
 		"\nport = " + strconv.Itoa(db.port) +
 		"\nname = icii"
 
+	lc := "\n\n[files]" +
+		"\nlocation = \"" + db.files + "\""
+
 	if d.temp {
 		dc = "\ntemp = true"
 	}
 
-	content = content + dc
+	content = content + dc + lc
 
 	file := []byte(content)
 

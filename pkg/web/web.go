@@ -33,6 +33,7 @@ func Start(port int) {
 
 	// Get the middleware up and running.
 	e.Static("/", "public")
+	e.Pre(middleware.AddTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
 
@@ -54,16 +55,16 @@ func Start(port int) {
 
 	s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
 
-	s.PUT("/", songCreate)
-	s.PUT("/:id", songUpdate)
-	s.GET("/:id", songGet)
-	s.DELETE("/:id", songDelete)
+	s.POST("/", songCreate)
+	s.PUT("/:id/", songUpdate)
+	s.GET("/:id/", songGet)
+	s.DELETE("/:id/", songDelete)
 
 	//// Users
 	u := a.Group("/user")
 
 	u.PUT("/", userCreate)
-	u.PUT("/login", userLogin)
+	u.PUT("/login/", userLogin)
 	// u.PUT("/:id", notImplemented)
 	// u.GET("/:id", notImplemented)
 	// u.DELETE("/:id", notImplemented)

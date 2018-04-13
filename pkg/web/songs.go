@@ -1,12 +1,25 @@
 package web
 
 import (
+	"io"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/labstack/echo"
+	"github.com/spf13/viper"
 )
+
+// Process the audio file that was uploaded.
+func processSong(filename string, info database.Song) {
+	//// Create the database entry
+
+	info.Location = filename
+
+	db.Create(&info)
+}
 
 // Create a song entry in the database.
 func songCreate(c echo.Context) error {
@@ -14,14 +27,45 @@ func songCreate(c echo.Context) error {
 	//// Bind the sent data to a entry.
 	var song database.Song
 
-	if err := c.Bind(&song); err != nil {
+	name := c.FormValue("name")
+	album := c.FormValue("album")
+
+	user := getJwtID(c)
+
+	song.Name = name
+	song.Album = album
+	song.UserID = user
+
+	//// Copy the audio file to a temporary folder
+
+	// Get the audio file
+	file, err := c.FormFile("audio")
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Create the database and return the result.
-	db.Create(&song)
+	// Source
+	src, err := file.Open()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
-	return c.JSON(http.StatusOK, song)
+	// Destination
+	tmp := viper.GetString("files.location")
+	tmp = path.Join(tmp, file.Filename)
+	dst, err := os.Create(tmp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	//// Process the song.
+	go processSong(tmp, song)
+
+	return c.JSON(http.StatusOK, "song is being processed")
 }
 
 // Retrieve a song when given an ID.
