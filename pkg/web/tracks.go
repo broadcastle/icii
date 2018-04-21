@@ -16,7 +16,7 @@ import (
 )
 
 // Process the audio file that was uploaded.
-func processSong(location string, info database.Song, filename string) {
+func processTrack(location string, info database.Track, filename string) {
 
 	//// Get the tags from the temporary file.
 
@@ -63,18 +63,18 @@ func processSong(location string, info database.Song, filename string) {
 	db.Create(&info)
 }
 
-// Create a song entry in the database.
-func songCreate(c echo.Context) error {
+// Create a track entry in the database.
+func trackCreate(c echo.Context) error {
 
 	//// Bind the sent data to a entry.
-	var song database.Song
+	var track database.Track
 
-	song.Title = c.FormValue("title")
-	song.Album = c.FormValue("album")
-	song.Artist = c.FormValue("artist")
-	song.Year = c.FormValue("year")
-	song.Genre = c.FormValue("genre")
-	song.UserID = getJwtID(c)
+	track.Title = c.FormValue("title")
+	track.Album = c.FormValue("album")
+	track.Artist = c.FormValue("artist")
+	track.Year = c.FormValue("year")
+	track.Genre = c.FormValue("genre")
+	track.UserID = getJwtID(c)
 
 	//// Copy the audio file to a temporary folder
 
@@ -113,14 +113,14 @@ func songCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Process the song. Let the user know the song is being processed.
-	go processSong(tmp, song, file.Filename)
+	//// Process the track. Let the user know the track is being processed.
+	go processTrack(tmp, track, file.Filename)
 
-	return c.JSON(http.StatusOK, "song is being processed")
+	return c.JSON(http.StatusOK, "track is being processed")
 }
 
-// Retrieve a song when given an ID.
-func songGet(c echo.Context) error {
+// Retrieve a track when given an ID.
+func trackGet(c echo.Context) error {
 
 	//// Get the ID as an integer.
 	i := c.Param("id")
@@ -130,20 +130,20 @@ func songGet(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Find the song with that ID and return the data.
-	var song database.Song
+	//// Find the track with that ID and return the data.
+	var track database.Track
 
-	db.First(&song, id)
+	db.First(&track, id)
 
-	if song.ID == 0 {
+	if track.ID == 0 {
 		return c.JSON(http.StatusNotFound, "not found")
 	}
 
-	return c.JSON(http.StatusOK, song)
+	return c.JSON(http.StatusOK, track)
 }
 
-// Update the song at the given ID.
-func songUpdate(c echo.Context) error {
+// Update the track at the given ID.
+func trackUpdate(c echo.Context) error {
 
 	//// Get the ID as an integer
 	i := c.Param("id")
@@ -153,30 +153,30 @@ func songUpdate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Get the original song info.
-	var original database.Song
+	//// Get the original track info.
+	var original database.Track
 
 	db.First(&original, id)
 
 	if original.ID == 0 {
-		return c.JSON(http.StatusNotFound, "song does not exist")
+		return c.JSON(http.StatusNotFound, "track does not exist")
 	}
 
-	//// Bind the updated information to a Song struct.
-	var update database.Song
+	//// Bind the updated information to a Track struct.
+	var update database.Track
 	if err := c.Bind(&update); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Update the original song and return the result.
+	//// Update the original track and return the result.
 	db.Model(&original).Updates(update)
 
 	return c.JSON(http.StatusOK, original)
 
 }
 
-// Delete the song at the given ID.
-func songDelete(c echo.Context) error {
+// Delete the track at the given ID.
+func trackDelete(c echo.Context) error {
 
 	// Get the ID as an iteger and check that it's not 0.
 	i := c.Param("id")
@@ -190,16 +190,16 @@ func songDelete(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, "an id is needed")
 	}
 
-	// Query the first song that has the ID and delete it.
-	var song database.Song
+	// Query the first track that has the ID and delete it.
+	var track database.Track
 
-	db.First(&song, id)
+	db.First(&track, id)
 
-	if song.ID == 0 {
+	if track.ID == 0 {
 		return c.JSON(http.StatusNotFound, "not found")
 	}
 
-	db.Delete(&song)
+	db.Delete(&track)
 
 	return c.JSON(http.StatusOK, "successfully deleted")
 }

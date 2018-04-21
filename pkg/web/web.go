@@ -21,15 +21,28 @@ func Start(port int) {
 	// Init Echo
 	e := echo.New()
 
+	//// Start the database
+	c := database.Config{
+		Temp: viper.GetBool("database.temp"),
+	}
+
+	// If this is not a temporary database.
+	if !c.Temp {
+		c.Database = viper.GetString("database.database")
+		c.Host = viper.GetString("database.host")
+		c.Password = viper.GetString("database.password")
+		c.Port = viper.GetInt("database.port")
+		c.Postgres = viper.GetBool("database.postgres")
+		c.User = viper.GetString("database.user")
+	}
+
 	// Get the database up and running.
-	d, err := database.Config{Temp: true}.Connect() // Set to temp for development usage.
+	db, err := c.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer d.Close()
-
-	db = d
+	defer db.Close()
 
 	// Get the middleware up and running.
 	e.Static("/", "public")
@@ -50,15 +63,15 @@ func Start(port int) {
 	// API
 	a := e.Group("/api/v1")
 
-	//// Songs
-	s := a.Group("/song")
+	//// tracks
+	s := a.Group("/track")
 
 	s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
 
-	s.POST("/", songCreate)
-	s.PUT("/:id/", songUpdate)
-	s.GET("/:id/", songGet)
-	s.DELETE("/:id/", songDelete)
+	s.POST("/", trackCreate)
+	s.PUT("/:id/", trackUpdate)
+	s.GET("/:id/", trackGet)
+	s.DELETE("/:id/", trackDelete)
 
 	//// Users
 	u := a.Group("/user")
