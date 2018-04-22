@@ -85,5 +85,5 @@ func userLogin(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, t)
+	return c.JSON(http.StatusOK, msg(t))
 }

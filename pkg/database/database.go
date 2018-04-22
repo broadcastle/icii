@@ -47,24 +47,24 @@ type Organization struct {
 // UserPermission keeps track of what permission are allowed for a user.
 type UserPermission struct {
 	gorm.Model
-	UserID         uint
-	OrganizationID uint
+	UserID         uint `json:"user_id"`
+	OrganizationID uint `json:"organization_id"`
 
-	TrackAdd    bool
-	TrackEdit   bool
-	TrackRemove bool
+	TrackAdd    bool `json:"track_add"`
+	TrackEdit   bool `json:"track_edit"`
+	TrackRemove bool `json:"track_remove"`
 
-	UserAdd    bool
-	UserEdit   bool
-	UserRemove bool
+	UserAdd    bool `json:"user_add"`
+	UserEdit   bool `json:"user_edit"`
+	UserRemove bool `json:"user_remove"`
 
-	StreamAdd    bool
-	StreamEdit   bool
-	StreamRemove bool
+	StreamAdd    bool `json:"stream_add"`
+	StreamEdit   bool `json:"stream_edit"`
+	StreamRemove bool `json:"stream_remove"`
 
-	OrganizationAdd    bool
-	OrganizationEdit   bool
-	OrganizationRemove bool
+	OrgAdd    bool `json:"org_add"`
+	OrgEdit   bool `json:"org_edit"`
+	OrgRemove bool `json:"org_remove"`
 }
 
 // Initialize the database tables.

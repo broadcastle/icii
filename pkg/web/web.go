@@ -21,6 +21,8 @@ func Start(port int) {
 	// Init Echo
 	e := echo.New()
 
+	e.HideBanner = true
+
 	//// Start the database
 	c := database.Config{
 		Temp: viper.GetBool("database.temp"),
@@ -36,8 +38,10 @@ func Start(port int) {
 		c.User = viper.GetString("database.user")
 	}
 
+	var err error
+
 	// Get the database up and running.
-	db, err := c.Connect()
+	db, err = c.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +51,7 @@ func Start(port int) {
 	// Get the middleware up and running.
 	e.Static("/", "public")
 	e.Pre(middleware.AddTrailingSlash())
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
 
 	// Set up the renderer
@@ -66,24 +70,39 @@ func Start(port int) {
 	//// tracks
 	s := a.Group("/track")
 
-	s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
+	useJWT(s)
+	// s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
 
 	s.POST("/", trackCreate)
-	s.PUT("/:id/", trackUpdate)
+	s.POST("/:id/", trackUpdate)
 	s.GET("/:id/", trackGet)
 	s.DELETE("/:id/", trackDelete)
 
 	//// Users
 	u := a.Group("/user")
 
-	u.PUT("/", userCreate)
-	u.PUT("/login/", userLogin)
-	// u.PUT("/:id", notImplemented)
+	u.POST("/", userCreate)
+	u.POST("/login/", userLogin)
+	// u.POST("/:id", notImplemented)
 	// u.GET("/:id", notImplemented)
 	// u.DELETE("/:id", notImplemented)
 
+	//// Organization
+	o := a.Group("/organization")
+
+	useJWT(o)
+
+	o.POST("/", organizationCreate)
+	o.POST("/:id/", notImplemented)
+	o.GET("/:id/", notImplemented)
+	o.DELETE("/:id/", notImplemented)
+
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 
+}
+
+func useJWT(c *echo.Group) {
+	c.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
 }
 
 func displayPage(c echo.Context) error {
