@@ -52,11 +52,11 @@ func userLogin(c echo.Context) error {
 	wrong := "email and/or password was incorrect"
 
 	if err := c.Bind(&sent); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	if sent.Email == "" && sent.Password == "" {
-		return c.JSON(http.StatusMethodNotAllowed, wrong)
+		return c.JSON(http.StatusMethodNotAllowed, msg(wrong))
 	}
 
 	//// Find the user
@@ -65,11 +65,11 @@ func userLogin(c echo.Context) error {
 	db.Where("email = ?", sent.Email).First(&user)
 
 	if user.ID == 0 {
-		return c.JSON(http.StatusMethodNotAllowed, wrong)
+		return c.JSON(http.StatusMethodNotAllowed, msg(wrong))
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(sent.Password)); err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, wrong)
+		return c.JSON(http.StatusMethodNotAllowed, msg(wrong))
 	}
 
 	//// Create the JWT token.
@@ -82,7 +82,7 @@ func userLogin(c echo.Context) error {
 
 	t, err := token.SignedString([]byte(viper.GetString("icii.jwt")))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	return c.JSON(http.StatusOK, msg(t))

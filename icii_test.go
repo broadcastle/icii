@@ -17,7 +17,7 @@ func TestIcii(t *testing.T) {
 	base := "http://localhost:8080/api/v1/"
 	userSignUpURL := base + "user/"
 	userLoginURL := userSignUpURL + "login/"
-	orgCreate := base + "organization/"
+	orgCreate := base + "station/"
 
 	cmd.Execute()
 

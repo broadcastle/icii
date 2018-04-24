@@ -51,7 +51,7 @@ func Start(port int) {
 	// Get the middleware up and running.
 	e.Static("/", "public")
 	e.Pre(middleware.AddTrailingSlash())
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.Use(middleware.Gzip())
 
 	// Set up the renderer
@@ -67,7 +67,7 @@ func Start(port int) {
 	// API
 	a := e.Group("/api/v1")
 
-	//// Users
+	//// Single User
 	u := a.Group("/user")
 
 	u.POST("/", userCreate)
@@ -78,27 +78,38 @@ func Start(port int) {
 
 	useJWT(i)
 
-	u.POST("/", notImplemented)
-	u.GET("/", notImplemented)
-	u.DELETE("/", notImplemented)
+	i.POST("/", notImplemented)
+	i.GET("/", notImplemented)
+	i.DELETE("/", notImplemented)
 
-	//// Station
-	o := a.Group("/station")
+	/////////////////
+	//// Station ////
+	/////////////////
 
-	useJWT(o)
+	s := a.Group("/station")
 
-	o.POST("/", stationCreate)
-	o.POST("/:station/", notImplemented)
-	o.GET("/:station/", notImplemented)
-	o.DELETE("/:station/", notImplemented)
+	useJWT(s)
 
-	//// Tracks
-	s := o.Group("/track")
+	s.POST("/", stationCreate)
+	s.POST("/:station/", notImplemented)
+	s.GET("/:station/", notImplemented)
+	s.DELETE("/:station/", notImplemented)
 
-	s.POST("/", trackCreate)
-	s.POST("/:track/", trackUpdate)
-	s.GET("/:track/", trackGet)
-	s.DELETE("/:track/", trackDelete)
+	//// Station Tracks
+	t := s.Group("/track")
+
+	t.POST("/", trackCreate)
+	t.POST("/:track/", trackUpdate)
+	t.GET("/:track/", trackGet)
+	t.DELETE("/:track/", trackDelete)
+
+	//// Station Users
+	r := s.Group("/user")
+
+	r.POST("/", notImplemented)
+	r.POST("/:user/", notImplemented)
+	r.GET("/:user/", notImplemented)
+	r.DELETE("/:user/", notImplemented)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 

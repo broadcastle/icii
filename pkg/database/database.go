@@ -8,7 +8,7 @@ import (
 type Track struct {
 	gorm.Model
 
-	// Necesary information.
+	// Necessary information.
 	Album  string `json:"album"`
 	Artist string `json:"artist"`
 	Title  string `json:"title"`
@@ -70,25 +70,30 @@ type UserPermission struct {
 	UserID    uint `json:"user_id"`
 	StationID uint `json:"station_id"`
 
-	// Station track permisions.
-	TrackAdd    bool `json:"track_add"`    // Add tracks to the station.
-	TrackEdit   bool `json:"track_edit"`   // Edit a stations tracks.
-	TrackRemove bool `json:"track_remove"` // Remove a stations tracks.
+	// Station track permissions.
+	TrackRead  bool `json:"track_read"`  // See what tracks are available.
+	TrackWrite bool `json:"track_write"` // Edit, add, or remove tracks.
 
 	// Station user permissions.
-	UserAdd    bool `json:"user_add"`    // Add users to the station.
-	UserEdit   bool `json:"user_edit"`   // Edit users permissions in the station.
-	UserRemove bool `json:"user_remove"` // Remove user from a station.
+	UserRead  bool `json:"user_read"`  // See the users in the station.
+	UserWrite bool `json:"user_write"` // Add or remove users, or edit their permissions.
 
 	// Station stream permissions.
-	StreamAdd    bool `json:"stream_add"`    // Create a stream.
-	StreamEdit   bool `json:"stream_edit"`   // Edit a stream.
-	StreamRemove bool `json:"stream_remove"` // Remove a stream.
+	StreamRead  bool `json:"stream_read"`  // See the station's streams.
+	StreamWrite bool `json:"stream_write"` // Edit, add, or remove streams.
 
 	// Station permissions.
-	StationAdd    bool `json:"station_add"`    // Create a station.
-	StationEdit   bool `json:"station_edit"`   // Edit a station.
-	StationRemove bool `json:"station_remove"` // Remove a station.
+	StationRead  bool `json:"station_read"`  // See private station information.
+	StationWrite bool `json:"station_write"` // Edit, add, or remove station information.
+
+	// Schedule permissions.
+	ScheduleRead  bool `json:"schedule_read"`  // See the schedule for the station.
+	ScheduleWrite bool `json:"schedule_write"` // Edit the station schedule.
+
+	// Playlist permissions.
+	PlaylistRead  bool `json:"playlist_read"`  // See the playlist.
+	PlaylistWrite bool `json:"playlist_write"` // Edit, add, or remove a playlist.
+
 }
 
 // Initialize the database tables.
