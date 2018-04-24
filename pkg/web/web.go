@@ -87,12 +87,12 @@ func Start(port int) {
 	// u.GET("/:id", notImplemented)
 	// u.DELETE("/:id", notImplemented)
 
-	//// Organization
-	o := a.Group("/organization")
+	//// Station
+	o := a.Group("/station")
 
 	useJWT(o)
 
-	o.POST("/", organizationCreate)
+	o.POST("/", stationCreate)
 	o.POST("/:id/", notImplemented)
 	o.GET("/:id/", notImplemented)
 	o.DELETE("/:id/", notImplemented)

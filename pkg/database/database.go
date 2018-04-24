@@ -7,16 +7,16 @@ import (
 // Track is the information needed to store a audio file.
 type Track struct {
 	gorm.Model
-	Album          string  `json:"album"`
-	Artist         string  `json:"artist"`
-	Location       string  `json:"location"`
-	Title          string  `json:"title"`
-	OrganizationID uint    `json:"organization_id"`
-	UserID         uint    `json:"uploader"`
-	Year           string  `json:"year"`
-	Length         float64 `json:"length"`
-	Genre          string  `json:"genre"`
-	Tags           []Tag   `json:"tags"`
+	Album     string  `json:"album"`
+	Artist    string  `json:"artist"`
+	Location  string  `json:"location"`
+	Title     string  `json:"title"`
+	StationID uint    `json:"organization_id"`
+	UserID    uint    `json:"uploader"`
+	Year      string  `json:"year"`
+	Length    float64 `json:"length"`
+	Genre     string  `json:"genre"`
+	Tags      []Tag   `json:"tags"`
 }
 
 // Tag is for the tags that would be assigned to a audio file.
@@ -29,26 +29,26 @@ type Tag struct {
 // User is the information about the user for icii.
 type User struct {
 	gorm.Model
-	Name          string          `json:"name"`
-	Email         string          `json:"email"`
-	Password      string          `json:"password"`
-	Organizations []*Organization `gorm:"many2many:user_organizations;" json:"organizations"`
+	Name     string     `json:"name"`
+	Email    string     `json:"email"`
+	Password string     `json:"password"`
+	Stations []*Station `gorm:"many2many:user_stations;" json:"organizations"`
 }
 
-// A Organization holds the audio tracks and users.
-type Organization struct {
+// A Station holds the audio tracks and users.
+type Station struct {
 	gorm.Model
 	Name  string  `json:"name"`
 	Slug  string  `json:"slug"`
-	Users []*User `gorm:"many2many:user_organizations;" json:"users"`
+	Users []*User `gorm:"many2many:user_stations;" json:"users"`
 	Track []Track `json:"audio"`
 }
 
 // UserPermission keeps track of what permission are allowed for a user.
 type UserPermission struct {
 	gorm.Model
-	UserID         uint `json:"user_id"`
-	OrganizationID uint `json:"organization_id"`
+	UserID    uint `json:"user_id"`
+	StationID uint `json:"station_id"`
 
 	TrackAdd    bool `json:"track_add"`
 	TrackEdit   bool `json:"track_edit"`
@@ -62,14 +62,14 @@ type UserPermission struct {
 	StreamEdit   bool `json:"stream_edit"`
 	StreamRemove bool `json:"stream_remove"`
 
-	OrgAdd    bool `json:"org_add"`
-	OrgEdit   bool `json:"org_edit"`
-	OrgRemove bool `json:"org_remove"`
+	StationAdd    bool `json:"station_add"`
+	StationEdit   bool `json:"station_edit"`
+	StationRemove bool `json:"station_remove"`
 }
 
 // Initialize the database tables.
 func initIciiTables(d *gorm.DB) {
-	d.AutoMigrate(&Organization{})
+	d.AutoMigrate(&Station{})
 	d.AutoMigrate(&Tag{})
 	d.AutoMigrate(&Track{})
 	d.AutoMigrate(&User{})
