@@ -67,25 +67,20 @@ func Start(port int) {
 	// API
 	a := e.Group("/api/v1")
 
-	//// tracks
-	s := a.Group("/track")
-
-	useJWT(s)
-	// s.Use(middleware.JWT([]byte(viper.GetString("icii.jwt"))))
-
-	s.POST("/", trackCreate)
-	s.POST("/:id/", trackUpdate)
-	s.GET("/:id/", trackGet)
-	s.DELETE("/:id/", trackDelete)
-
 	//// Users
 	u := a.Group("/user")
 
 	u.POST("/", userCreate)
 	u.POST("/login/", userLogin)
-	// u.POST("/:id", notImplemented)
-	// u.GET("/:id", notImplemented)
-	// u.DELETE("/:id", notImplemented)
+
+	// Edit User information
+	i := u.Group("/edit")
+
+	useJWT(i)
+
+	u.POST("/", notImplemented)
+	u.GET("/", notImplemented)
+	u.DELETE("/", notImplemented)
 
 	//// Station
 	o := a.Group("/station")
@@ -93,9 +88,17 @@ func Start(port int) {
 	useJWT(o)
 
 	o.POST("/", stationCreate)
-	o.POST("/:id/", notImplemented)
-	o.GET("/:id/", notImplemented)
-	o.DELETE("/:id/", notImplemented)
+	o.POST("/:station/", notImplemented)
+	o.GET("/:station/", notImplemented)
+	o.DELETE("/:station/", notImplemented)
+
+	//// Tracks
+	s := o.Group("/track")
+
+	s.POST("/", trackCreate)
+	s.POST("/:track/", trackUpdate)
+	s.GET("/:track/", trackGet)
+	s.DELETE("/:track/", trackDelete)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 

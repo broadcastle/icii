@@ -123,7 +123,7 @@ func trackCreate(c echo.Context) error {
 func trackGet(c echo.Context) error {
 
 	//// Get the ID as an integer.
-	i := c.Param("id")
+	i := c.Param("track")
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
@@ -146,7 +146,7 @@ func trackGet(c echo.Context) error {
 func trackUpdate(c echo.Context) error {
 
 	//// Get the ID as an integer
-	i := c.Param("id")
+	i := c.Param("track")
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
@@ -179,7 +179,7 @@ func trackUpdate(c echo.Context) error {
 func trackDelete(c echo.Context) error {
 
 	// Get the ID as an iteger and check that it's not 0.
-	i := c.Param("id")
+	i := c.Param("track")
 
 	id, err := strconv.Atoi(i)
 	if err != nil {

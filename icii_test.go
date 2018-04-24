@@ -68,9 +68,9 @@ func TestIcii(t *testing.T) {
 
 	token := msg.Msg
 
-	// Create an organization
+	// Create a station.
 
-	org := database.Organization{Name: "Generic Organization"}
+	org := database.Station{Name: "Generic Station"}
 
 	resp, err := testTokenPOST(orgCreate, token, org)
 	if err != nil {
