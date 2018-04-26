@@ -107,8 +107,6 @@ func trackCreate(c echo.Context) error {
 
 	tmp := path.Join(t, u.String()+ext)
 
-	log.Println(tmp)
-
 	//// Create the destination
 	dst, err := os.Create(tmp)
 	if err != nil {
@@ -130,7 +128,7 @@ func trackGet(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Get the ID as an integer.
@@ -138,13 +136,15 @@ func trackGet(c echo.Context) error {
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Find the track with that ID and return the data.
 	var track database.Track
 
-	db.First(&track, id)
+	if err := db.First(&track, id).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
 
 	if track.ID == 0 {
 		return c.JSON(http.StatusNotFound, "not found")
@@ -158,7 +158,7 @@ func trackUpdate(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Get the ID as an integer
@@ -166,26 +166,26 @@ func trackUpdate(c echo.Context) error {
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Get the original track info.
 	var original database.Track
 
-	db.First(&original, id)
-
-	if original.ID == 0 {
-		return c.JSON(http.StatusNotFound, "track does not exist")
+	if err := db.First(&original, id).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Bind the updated information to a Track struct.
 	var update database.Track
 	if err := c.Bind(&update); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, msg(err))
 	}
 
 	//// Update the original track and return the result.
-	db.Model(&original).Updates(update)
+	if err := db.Model(&original).Updates(update).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
 
 	return c.JSON(http.StatusOK, original)
 
@@ -207,20 +207,21 @@ func trackDelete(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	if id == 0 {
-		return c.JSON(http.StatusMethodNotAllowed, "an id is needed")
-	}
+	// if id == 0 {
+	// 	return c.JSON(http.StatusMethodNotAllowed, "an id is needed")
+	// }
 
 	// Query the first track that has the ID and delete it.
 	var track database.Track
 
-	db.First(&track, id)
+	if err := db.First(&track, id).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 
-	if track.ID == 0 {
-		return c.JSON(http.StatusNotFound, "not found")
 	}
 
-	db.Delete(&track)
+	if err := db.Delete(&track).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
 	return c.JSON(http.StatusOK, "successfully deleted")
 }
