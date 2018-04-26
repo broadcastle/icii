@@ -68,6 +68,11 @@ func TestIcii(t *testing.T) {
 
 	token := msg.Msg
 
+	// Change users name.
+	if _, err := testTokenPOST(userSignUpURL+"edit/", token, database.User{Name: "Updated Name"}); err != nil {
+		t.Error(err)
+	}
+
 	// Create a station.
 
 	org := database.Station{Name: "Generic Station"}

@@ -10,22 +10,33 @@ import (
 
 func stationCreate(c echo.Context) error {
 
+	// Get the user ID if the token is valid.
+	userID, err := getJwtID(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
+
+	//// Bind the station information.
 	var org database.Station
 
-	c.Bind(&org)
+	if err := c.Bind(&org); err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
 
 	if org.Name == "" {
-		return c.JSON(http.StatusMethodNotAllowed, "need a station name")
+		return c.JSON(http.StatusMethodNotAllowed, msg("need a station name"))
 	}
 
 	if org.Slug == "" {
 		org.Slug = slugify.Slugify(org.Name)
 	}
 
-	db.Create(&org)
+	// Save the database.
+	if err := db.Create(&org).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
 
-	userID := getJwtID(c)
-
+	//// Create and save the user permissions for the station.
 	permissions := database.UserPermission{
 		StationID:     org.ID,
 		UserID:        userID,
@@ -43,7 +54,9 @@ func stationCreate(c echo.Context) error {
 		PlaylistWrite: true,
 	}
 
-	db.Create(&permissions)
+	if err := db.Create(&permissions).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, msg(err))
+	}
 
 	return c.JSON(http.StatusOK, org)
 }

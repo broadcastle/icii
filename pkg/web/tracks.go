@@ -66,6 +66,12 @@ func processTrack(location string, info database.Track, filename string) {
 // Create a track entry in the database.
 func trackCreate(c echo.Context) error {
 
+	// Check if the token is valid.
+	userID, err := getJwtID(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	//// Bind the sent data to a entry.
 	var track database.Track
 
@@ -74,7 +80,7 @@ func trackCreate(c echo.Context) error {
 	track.Artist = c.FormValue("artist")
 	track.Year = c.FormValue("year")
 	track.Genre = c.FormValue("genre")
-	track.UserID = getJwtID(c)
+	track.UserID = userID
 
 	//// Copy the audio file to a temporary folder
 
@@ -122,6 +128,11 @@ func trackCreate(c echo.Context) error {
 // Retrieve a track when given an ID.
 func trackGet(c echo.Context) error {
 
+	// Check if the token is valid.
+	if _, err := getJwtID(c); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	//// Get the ID as an integer.
 	i := c.Param("track")
 
@@ -144,6 +155,11 @@ func trackGet(c echo.Context) error {
 
 // Update the track at the given ID.
 func trackUpdate(c echo.Context) error {
+
+	// Check if the token is valid.
+	if _, err := getJwtID(c); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
 	//// Get the ID as an integer
 	i := c.Param("track")
@@ -177,6 +193,11 @@ func trackUpdate(c echo.Context) error {
 
 // Delete the track at the given ID.
 func trackDelete(c echo.Context) error {
+
+	// Check if the token is valid.
+	if _, err := getJwtID(c); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 
 	// Get the ID as an iteger and check that it's not 0.
 	i := c.Param("track")

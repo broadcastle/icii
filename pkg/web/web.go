@@ -78,9 +78,9 @@ func Start(port int) {
 
 	useJWT(i)
 
-	i.POST("/", notImplemented)
-	i.GET("/", notImplemented)
-	i.DELETE("/", notImplemented)
+	i.POST("/", userUpdate)
+	i.GET("/", userRetrieve)
+	i.DELETE("/", userDelete)
 
 	/////////////////
 	//// Station ////
