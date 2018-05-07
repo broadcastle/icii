@@ -13,18 +13,18 @@ func stationCreate(c echo.Context) error {
 	// Get the user ID if the token is valid.
 	userID, err := getJwtID(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, msg(err))
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
 	//// Bind the station information.
 	var org database.Station
 
 	if err := c.Bind(&org); err != nil {
-		return c.JSON(http.StatusInternalServerError, msg(err))
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
 	if org.Name == "" {
-		return c.JSON(http.StatusMethodNotAllowed, msg("need a station name"))
+		return c.JSON(msg(http.StatusMethodNotAllowed, "need a station name"))
 	}
 
 	if org.Slug == "" {
@@ -33,7 +33,7 @@ func stationCreate(c echo.Context) error {
 
 	// Save the database.
 	if err := db.Create(&org).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, msg(err))
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
 	//// Create and save the user permissions for the station.
@@ -55,8 +55,8 @@ func stationCreate(c echo.Context) error {
 	}
 
 	if err := db.Create(&permissions).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, msg(err))
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	return c.JSON(http.StatusOK, org)
+	return c.JSON(msg(http.StatusOK, org))
 }

@@ -1,6 +1,8 @@
 package web
 
 import (
+	"strconv"
+
 	"broadcastle.co/code/icii/pkg/database"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -8,7 +10,8 @@ import (
 
 // JSONResponse is used to create a json response.
 type JSONResponse struct {
-	Msg string `json:"msg"`
+	Status int    `json:"status"`
+	Msg    string `json:"msg"`
 }
 
 // This is a fast way to get the user id.
@@ -26,12 +29,25 @@ func getJwtID(c echo.Context) (uint, error) {
 
 }
 
-func msg(t interface{}) interface{} {
+func getStationID(c echo.Context) (uint, error) {
+
+	i := c.Param("station")
+
+	stationID, err := strconv.Atoi(i)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(stationID), nil
+
+}
+
+func msg(status int, t interface{}) (int, interface{}) {
 
 	switch t.(type) {
 	case string:
-		return &JSONResponse{Msg: t.(string)}
+		return status, &JSONResponse{Status: status, Msg: t.(string)}
 	default:
-		return t
+		return status, t
 	}
 }

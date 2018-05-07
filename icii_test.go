@@ -3,7 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -17,7 +21,7 @@ func TestIcii(t *testing.T) {
 	base := "http://localhost:8080/api/v1/"
 	userSignUpURL := base + "user/"
 	userLoginURL := userSignUpURL + "login/"
-	orgCreate := base + "station/"
+	station := base + "station/"
 
 	cmd.Execute()
 
@@ -77,7 +81,24 @@ func TestIcii(t *testing.T) {
 
 	org := database.Station{Name: "Generic Station"}
 
-	resp, err := testTokenPOST(orgCreate, token, org)
+	resp, err := testTokenPOST(station, token, org)
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Error(resp)
+	}
+
+	// Upload a file.
+
+	p := make(map[string]string)
+
+	p["title"] = "Loping String"
+
+	resp, err = uploadFile(station+"1/track/", token, nil, "./test_audio/loping_sting.mp3")
 	if err != nil {
 		t.Error(err)
 	}
@@ -103,7 +124,7 @@ func testPOST(u string, i interface{}) (*http.Response, error) {
 
 }
 
-func testTokenGET(u string, t string) (*http.Response, error) {
+func testTokenGET(u, t string) (*http.Response, error) {
 
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
@@ -117,7 +138,7 @@ func testTokenGET(u string, t string) (*http.Response, error) {
 	return client.Do(req)
 }
 
-func testTokenPOST(u string, t string, i interface{}) (*http.Response, error) {
+func testTokenPOST(u, t string, i interface{}) (*http.Response, error) {
 
 	j, err := json.Marshal(&i)
 	if err != nil {
@@ -135,4 +156,52 @@ func testTokenPOST(u string, t string, i interface{}) (*http.Response, error) {
 	client := http.Client{}
 
 	return client.Do(req)
+}
+
+func uploadRequest(uri, token string, params map[string]string, paramName, path string) (*http.Request, error) {
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := io.Copy(part, file); err != nil {
+		return nil, err
+	}
+
+	for key, val := range params {
+		writer.WriteField(key, val)
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", uri, body)
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Set("content-type", writer.FormDataContentType())
+
+	return req, err
+
+}
+
+func uploadFile(uri, token string, params map[string]string, path string) (*http.Response, error) {
+
+	req, err := uploadRequest(uri, token, params, "audio", path)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	return client.Do(req)
+
 }

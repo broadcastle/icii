@@ -51,7 +51,7 @@ func init() {
 	initCmd.Flags().BoolVar(&db.post, "postgres", false, "use postgress")
 	initCmd.Flags().IntVar(&db.port, "port", 13306, "database port")
 	initCmd.Flags().StringVar(&db.host, "host", "localhost", "host address of the database")
-	initCmd.Flags().StringVarP(&db.out, "output", "o", "~/.icii", "output location of config file")
+	initCmd.Flags().StringVarP(&db.out, "output", "o", "~/.icii", "output directory of config file")
 	initCmd.Flags().StringVarP(&db.pass, "password", "p", "", "database user password")
 	initCmd.Flags().StringVarP(&db.user, "user", "u", "", "database user name")
 	initCmd.Flags().BoolVar(&db.temp, "temp", false, "create a temporary database")
@@ -99,8 +99,7 @@ func (d configCreate) create() error {
 		"\nname = icii"
 
 	lc := "\n\n[files]" +
-		"\nlocation = \"" + db.files + "\"" +
-		"\ntemporary = \"" + db.filesTemp + "\""
+		"\nlocation = \"" + db.files
 
 	if d.temp {
 		dc = "\ntemp = true"

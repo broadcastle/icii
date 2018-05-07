@@ -91,12 +91,15 @@ func Start(port int) {
 	useJWT(s)
 
 	s.POST("/", stationCreate)
-	s.POST("/:station/", notImplemented)
-	s.GET("/:station/", notImplemented)
-	s.DELETE("/:station/", notImplemented)
 
-	//// Station Tracks
-	t := s.Group("/track")
+	si := s.Group("/:station")
+
+	si.POST("/", notImplemented)
+	si.GET("/", notImplemented)
+	si.DELETE("/", notImplemented)
+
+	// //// Station Tracks
+	t := si.Group("/track")
 
 	t.POST("/", trackCreate)
 	t.POST("/:track/", trackUpdate)
@@ -104,7 +107,7 @@ func Start(port int) {
 	t.DELETE("/:track/", trackDelete)
 
 	//// Station Users
-	r := s.Group("/user")
+	r := si.Group("/user")
 
 	r.POST("/", notImplemented)
 	r.POST("/:user/", notImplemented)
