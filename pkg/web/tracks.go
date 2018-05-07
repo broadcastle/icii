@@ -18,10 +18,12 @@ import (
 
 func processTags(name, location string, info database.Track) database.Track {
 
+	info.Location = location
+
 	tag, err := id3v2.Open(location, id3v2.Options{Parse: true})
 	if err != nil {
 
-		log.Printf("error processing file\n %v\n", err)
+		log.Printf("error processing file: %s\n%v\n", location, err)
 		info.Title = "imported from " + name
 		return info
 
@@ -58,8 +60,9 @@ func processTags(name, location string, info database.Track) database.Track {
 // Process the audio file that was uploaded.
 func processTrack(location string, info database.Track, originalName string) {
 
-	//// Get the tags from the temporary file.
+	defer os.Remove(location)
 
+	// Open the file
 	in, err := os.Open(location)
 	if err != nil {
 		log.Println(err)
@@ -68,11 +71,11 @@ func processTrack(location string, info database.Track, originalName string) {
 
 	defer in.Close()
 
+	// Get the header
 	head := make([]byte, 261)
-	in.Read(head)
-
-	if !filetype.IsMIME(head, "audio/mpeg") {
-		os.Remove(location)
+	if _, err := in.Read(head); err != nil {
+		log.Println(err)
+		return
 	}
 
 	if _, err := in.Seek(0, 0); err != nil {
@@ -80,34 +83,40 @@ func processTrack(location string, info database.Track, originalName string) {
 		return
 	}
 
+	// Remove file if it is not a mp3 file.
+	if !filetype.IsMIME(head, "audio/mpeg") {
+		os.Remove(location)
+		return
+	}
+
+	// Get the location to store the files.
 	end := viper.GetString("files.location")
 	_, filename := path.Split(location)
 	end = path.Join(end, filename)
 
+	// Move the file to the new location
 	out, err := os.Create(end)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	defer out.Close()
+
 	if _, err := io.Copy(out, in); err != nil {
 		log.Println(err)
 		return
 	}
 
-	info = processTags(originalName, location, info)
+	// Process the Tags
+	info = processTags(originalName, end, info)
 
-	info.Location = end
-
-	//// Create the database entry
+	// Create the database entry
 
 	if err := db.Create(&info).Error; err != nil {
 		log.Println(err)
 		os.Remove(end)
 	}
-
-	out.Close()
-	os.Remove(location)
 }
 
 // Create a track entry in the database.
