@@ -22,6 +22,7 @@ func TestIcii(t *testing.T) {
 	userSignUpURL := base + "user/"
 	userLoginURL := userSignUpURL + "login/"
 	station := base + "station/"
+	trackURL := base + "track/"
 
 	cmd.Execute()
 
@@ -94,11 +95,14 @@ func TestIcii(t *testing.T) {
 
 	// Upload a file.
 
-	p := make(map[string]string)
+	p := map[string]string{
+		"title":   "loping string",
+		"station": "1",
+		"genre":   "testing",
+		"year":    "2018",
+	}
 
-	p["title"] = "Loping String"
-
-	resp, err = uploadFile(station+"1/track/", token, nil, "./test_audio/loping_sting.mp3")
+	resp, err = uploadFile(trackURL, token, p, "./test_audio/loping_sting.mp3")
 	if err != nil {
 		t.Error(err)
 	}

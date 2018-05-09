@@ -24,7 +24,14 @@ func processTags(name, location string, info database.Track) database.Track {
 	if err != nil {
 
 		log.Printf("error processing file: %s\n%v\n", location, err)
-		info.Title = "imported from " + name
+
+		if info.Title == "" {
+			info.Title = "imported from " + name
+		}
+
+		if info.Artist == "" {
+			info.Artist = "Unknown Artist"
+		}
 		return info
 
 	}
@@ -122,34 +129,35 @@ func processTrack(location string, info database.Track, originalName string) {
 // Create a track entry in the database.
 func trackCreate(c echo.Context) error {
 
-	stationID, err := getStationID(c)
-	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
-
 	// Check if the token is valid.
 	userID, err := getJwtID(c)
 	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(msg(http.StatusMethodNotAllowed, err))
 	}
 
 	//// Bind the sent data to a entry.
-	var track database.Track
-	track.UserID = userID
-	track.StationID = stationID
 
-	track.Title = c.FormValue("title")
-	track.Album = c.FormValue("album")
-	track.Artist = c.FormValue("artist")
-	track.Year = c.FormValue("year")
-	track.Genre = c.FormValue("genre")
+	stationID, err := getStationID(c.FormValue("station"))
+	if err != nil {
+		return c.JSON(msg(http.StatusMethodNotAllowed, err))
+	}
+
+	track := database.Track{
+		UserID:    userID,
+		StationID: stationID,
+		Title:     c.FormValue("title"),
+		Album:     c.FormValue("album"),
+		Artist:    c.FormValue("artist"),
+		Year:      c.FormValue("year"),
+		Genre:     c.FormValue("genre"),
+	}
 
 	//// Copy the audio file to a temporary folder
 
 	// Get the audio file
 	file, err := c.FormFile("audio")
 	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(msg(http.StatusMethodNotAllowed, err))
 	}
 
 	// Source
@@ -187,7 +195,7 @@ func trackGet(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(msg(http.StatusForbidden, err))
 	}
 
 	//// Get the ID as an integer.
@@ -217,7 +225,7 @@ func trackUpdate(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(msg(http.StatusForbidden, err))
 	}
 
 	//// Get the ID as an integer
@@ -255,7 +263,7 @@ func trackDelete(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusForbidden, err)
 	}
 
 	// Get the ID as an iteger and check that it's not 0.

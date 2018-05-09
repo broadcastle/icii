@@ -82,9 +82,7 @@ func Start(port int) {
 	i.GET("/", userRetrieve)
 	i.DELETE("/", userDelete)
 
-	/////////////////
-	//// Station ////
-	/////////////////
+	//// Station
 
 	s := a.Group("/station")
 
@@ -98,14 +96,6 @@ func Start(port int) {
 	si.GET("/", notImplemented)
 	si.DELETE("/", notImplemented)
 
-	// //// Station Tracks
-	t := si.Group("/track")
-
-	t.POST("/", trackCreate)
-	t.POST("/:track/", trackUpdate)
-	t.GET("/:track/", trackGet)
-	t.DELETE("/:track/", trackDelete)
-
 	//// Station Users
 	r := si.Group("/user")
 
@@ -113,6 +103,17 @@ func Start(port int) {
 	r.POST("/:user/", notImplemented)
 	r.GET("/:user/", notImplemented)
 	r.DELETE("/:user/", notImplemented)
+
+	//// Tracks
+
+	t := a.Group("/track")
+
+	useJWT(t)
+
+	t.POST("/", trackCreate)
+	t.POST("/:track/", trackUpdate)
+	t.GET("/:track/", trackGet)
+	t.DELETE("/:track/", trackDelete)
 
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 
