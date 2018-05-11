@@ -278,13 +278,17 @@ func trackDelete(c echo.Context) error {
 	var track database.Track
 
 	if err := db.First(&track, id).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(msg(http.StatusInternalServerError, err))
 
+	}
+
+	if err := os.Remove(track.Location); err != nil {
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
 	if err := db.Delete(&track).Error; err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	return c.JSON(http.StatusOK, "successfully deleted")
+	return c.JSON(msg(http.StatusOK, "successfully deleted"))
 }

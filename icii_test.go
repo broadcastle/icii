@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -19,10 +20,11 @@ import (
 func TestIcii(t *testing.T) {
 
 	base := "http://localhost:8080/api/v1/"
-	userSignUpURL := base + "user/"
-	userLoginURL := userSignUpURL + "login/"
+	userCreate := base + "user/"
+	userLogin := userCreate + "login/"
+	userEdit := userCreate + "edit/"
 	station := base + "station/"
-	trackURL := base + "track/"
+	track := base + "track/"
 
 	cmd.Execute()
 
@@ -43,54 +45,35 @@ func TestIcii(t *testing.T) {
 	}
 
 	// Create First User
-	if _, err := testPOST(userSignUpURL, user); err != nil {
+	if _, err := testPOST(userCreate, user); err != nil {
 		t.Error(err)
 	}
 
 	// Check if user is only able to use one email.
-	if r, _ := testPOST(userSignUpURL, user); r.StatusCode == http.StatusOK {
+	if r, _ := testPOST(userCreate, user); r.StatusCode == http.StatusOK {
 		t.Error("user was able to use the same email twice")
 	}
 
 	// Create Second User
-	if _, err := testPOST(userSignUpURL, user2); err != nil {
+	if _, err := testPOST(userCreate, user2); err != nil {
 		t.Error(err)
 	}
 
 	// Login as the first user and get a token.
-	rul, err := testPOST(userLoginURL, user)
+	token, err := login(userLogin, user)
 	if err != nil {
 		t.Error(err)
 	}
-
-	defer rul.Body.Close()
-
-	msg := web.JSONResponse{}
-
-	if err := json.NewDecoder(rul.Body).Decode(&msg); err != nil {
-		t.Error(err)
-	}
-
-	token := msg.Msg
 
 	// Change users name.
-	if _, err := testTokenPOST(userSignUpURL+"edit/", token, database.User{Name: "Updated Name"}); err != nil {
+	if err := token.post(userEdit, database.User{Name: "Updated Name"}); err != nil {
 		t.Error(err)
 	}
 
-	// Create a station.
+	// // Create a station.
 
-	org := database.Station{Name: "Generic Station"}
-
-	resp, err := testTokenPOST(station, token, org)
-	if err != nil {
+	if err := token.post(station, database.Station{Name: "Generic Station"}); err != nil {
 		t.Error(err)
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Error(resp)
 	}
 
 	// Upload a file.
@@ -102,18 +85,187 @@ func TestIcii(t *testing.T) {
 		"year":    "2018",
 	}
 
-	resp, err = uploadFile(trackURL, token, p, "./test_audio/loping_sting.mp3")
-	if err != nil {
+	if err := token.upload(track, p, "./test_audio/loping_sting.mp3"); err != nil {
 		t.Error(err)
+	}
+
+	// Upload the file again.
+
+	if err := token.upload(track, p, "./test_audio/loping_sting.mp3"); err != nil {
+		t.Error(err)
+	}
+
+	// Delete the duplicate.
+
+	if err := token.delete(track + "2/"); err != nil {
+		t.Error(err)
+	}
+
+	return
+
+}
+
+type Token struct {
+	String string
+}
+
+func login(u string, user database.User) (Token, error) {
+
+	var t Token
+
+	rul, err := testPOST(u, user)
+	if err != nil {
+		return t, err
+	}
+
+	defer rul.Body.Close()
+
+	msg := web.JSONResponse{}
+
+	if err := json.NewDecoder(rul.Body).Decode(&msg); err != nil {
+		return t, err
+	}
+
+	t.String = msg.Msg
+
+	return t, nil
+
+}
+
+func (t Token) post(u string, i interface{}) error {
+
+	j, err := json.Marshal(&i)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", u, bytes.NewReader(j))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+t.String)
+	req.Header.Add("content-type", "application/json")
+
+	client := http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		t.Error(resp)
+		log.Printf("unable to post to %v\nreason:\n%v\n%v", u, resp.StatusCode, resp.Body)
 	}
 
-	return
+	return nil
+
+}
+
+func (t Token) get(u string) error {
+
+	req, err := http.NewRequest("GET", u, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+t.String)
+
+	client := http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("unable to retrieve %v\nreason:\n%v\n%v", u, resp.StatusCode, resp.Body)
+	}
+
+	return nil
+
+}
+
+func (t Token) delete(u string) error {
+
+	req, err := http.NewRequest("DELETE", u, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+t.String)
+
+	client := http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Unable to delete %v: %v\n%v", u, resp.StatusCode, resp.Body)
+	}
+
+	return nil
+
+}
+
+func (t Token) upload(u string, params map[string]string, path string) error {
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("audio", filepath.Base(path))
+	if err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(part, file); err != nil {
+		return err
+	}
+
+	for key, val := range params {
+		writer.WriteField(key, val)
+	}
+
+	if err := writer.Close(); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", u, body)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+t.String)
+	req.Header.Set("content-type", writer.FormDataContentType())
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Println(resp.Body)
+	}
+
+	return nil
 
 }
 
@@ -125,87 +277,5 @@ func testPOST(u string, i interface{}) (*http.Response, error) {
 	}
 
 	return http.Post(u, "application/json", bytes.NewReader(j))
-
-}
-
-func testTokenGET(u, t string) (*http.Response, error) {
-
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+t)
-
-	client := http.Client{}
-
-	return client.Do(req)
-}
-
-func testTokenPOST(u, t string, i interface{}) (*http.Response, error) {
-
-	j, err := json.Marshal(&i)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", u, bytes.NewReader(j))
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+t)
-	req.Header.Add("content-type", "application/json")
-
-	client := http.Client{}
-
-	return client.Do(req)
-}
-
-func uploadRequest(uri, token string, params map[string]string, paramName, path string) (*http.Request, error) {
-
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	defer file.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := io.Copy(part, file); err != nil {
-		return nil, err
-	}
-
-	for key, val := range params {
-		writer.WriteField(key, val)
-	}
-
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", uri, body)
-	req.Header.Add("Authorization", "Bearer "+token)
-	req.Header.Set("content-type", writer.FormDataContentType())
-
-	return req, err
-
-}
-
-func uploadFile(uri, token string, params map[string]string, path string) (*http.Response, error) {
-
-	req, err := uploadRequest(uri, token, params, "audio", path)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{}
-	return client.Do(req)
 
 }
