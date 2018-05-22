@@ -115,6 +115,15 @@ func Start(port int) {
 	t.GET("/:track/", trackGet)
 	t.DELETE("/:track/", trackDelete)
 
+	p := a.Group("/playlist")
+
+	useJWT(p)
+
+	p.POST("/", playlistCreate)
+	p.POST("/:playlist/", playlistUpdate)
+	p.GET("/:playlist/", playlistGet)
+	p.DELETE("/:playlist/", playlistDelete)
+
 	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
 
 }
