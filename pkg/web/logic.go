@@ -117,3 +117,35 @@ func (user *User) Get() error {
 	return db.Where(&user).First(&user).Error
 
 }
+
+// CreateStation allows for user to create a station from info.
+func (user *User) CreateStation(info Station) error {
+
+	if err := info.Create(); err != nil {
+		return err
+	}
+
+	permissions := database.UserPermission{
+		StationID:     info.ID,
+		UserID:        user.ID,
+		TrackRead:     true,
+		TrackWrite:    true,
+		UserRead:      true,
+		UserWrite:     true,
+		StreamRead:    true,
+		StreamWrite:   true,
+		StationRead:   true,
+		StationWrite:  true,
+		ScheduleRead:  true,
+		ScheduleWrite: true,
+		PlaylistRead:  true,
+		PlaylistWrite: true,
+	}
+
+	if err := db.Create(&permissions).Error; err != nil {
+		return err
+	}
+
+	return nil
+
+}
