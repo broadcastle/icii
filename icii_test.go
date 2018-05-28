@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"mime/multipart"
@@ -65,6 +66,10 @@ func TestIcii(t *testing.T) {
 		t.Error(err)
 	}
 
+	if _, err := login(userLogin, database.User{Email: "user@name.com", Password: "wrong password"}); err == nil {
+		t.Error("able to log in with incorrect password")
+	}
+
 	// Change users name.
 	if err := token.post(userEdit, database.User{Name: "Updated Name"}); err != nil {
 		t.Error(err)
@@ -119,6 +124,10 @@ func login(u string, user database.User) (Token, error) {
 	}
 
 	defer rul.Body.Close()
+
+	if rul.StatusCode != http.StatusOK {
+		return t, errors.New(string(rul.StatusCode) + " instead of 200 ")
+	}
 
 	msg := web.JSONResponse{}
 

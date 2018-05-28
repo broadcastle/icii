@@ -2,43 +2,22 @@ package web
 
 import (
 	"net/http"
-	"time"
 
-	"broadcastle.co/code/icii/pkg/database"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/spf13/viper"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func userCreate(c echo.Context) error {
 
-	//// Bind the sent data to the User struct.
-	var user database.User
+	// Bind the sent data to the User struct.
+	var user User
 
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	//// Find if a user is already registered with that email.
-	var found database.User
-
-	if err := db.Where("email = ?", user.Email).First(&found).Error; err == nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
-
-	//// Encrypt the password
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	user.Password = string(hash)
-
-	//// Create the user and return the result.
-
-	if err := db.Create(&user).Error; err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+	// Create the user.
+	if err := user.Create(); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -46,41 +25,17 @@ func userCreate(c echo.Context) error {
 
 func userLogin(c echo.Context) error {
 
-	//// Bind the email and password
-	var sent database.User
+	// Bind the email and password
+	var user User
 
-	wrong := "email and/or password was incorrect"
-
-	if err := c.Bind(&sent); err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+	if err := c.Bind(&user); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	if sent.Email == "" && sent.Password == "" {
-		return c.JSON(msg(http.StatusMethodNotAllowed, wrong))
-	}
-
-	//// Find the user
-	var user database.User
-
-	if err := db.Where("email = ?", sent.Email).First(&user).Error; err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(sent.Password)); err != nil {
-		return c.JSON(msg(http.StatusMethodNotAllowed, wrong))
-	}
-
-	//// Create the JWT token.
-
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-	claims["id"] = user.ID
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	t, err := token.SignedString([]byte(viper.GetString("icii.jwt")))
+	// Login
+	t, err := user.Login()
 	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
 	return c.JSON(msg(http.StatusOK, t))
@@ -88,59 +43,34 @@ func userLogin(c echo.Context) error {
 
 func userDelete(c echo.Context) error {
 
-	// Get user ID if the token is valid.
-	userID, err := getJwtID(c)
+	user, err := GetUserFromContext(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	//// Delete the user
-	var user database.User
-
-	user.ID = userID
-
-	if err := db.Delete(&user).Error; err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+	if err := user.Delete(); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	return c.JSON(msg(http.StatusOK, "user was deleted"))
+	return c.JSON(http.StatusOK, "user was deleted")
 
 }
 
 func userUpdate(c echo.Context) error {
 
-	// Get the current user information.
-	userID, err := getJwtID(c)
+	user, err := GetUserFromContext(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	var user database.User
-
-	if err := db.First(&user, userID).Error; err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	// Get updated user information.
-	var new database.User
+	var new User
 
 	if err := c.Bind(&new); err != nil {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	// If there is a password, encrypt it.
-	if new.Password != "" {
-
-		hash, err := bcrypt.GenerateFromPassword([]byte(new.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return c.JSON(msg(http.StatusInternalServerError, err))
-		}
-
-		new.Password = string(hash)
-
-	}
-
-	if err := db.Model(&user).Updates(new).Error; err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+	if err := user.Update(new); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
 	return c.JSON(http.StatusOK, user)
@@ -149,17 +79,13 @@ func userUpdate(c echo.Context) error {
 
 func userRetrieve(c echo.Context) error {
 
-	// Get the user ID if the token is valid.
-	userID, err := getJwtID(c)
+	user, err := GetUserFromContext(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	// Get the user information.
-	var user database.User
-
-	if err := db.Find(&user, userID).Error; err != nil {
-		return c.JSON(msg(http.StatusMethodNotAllowed, err))
+	if err := user.Get(); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
 	return c.JSON(http.StatusOK, user)
