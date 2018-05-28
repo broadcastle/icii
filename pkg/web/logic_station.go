@@ -33,7 +33,17 @@ func (s *Station) Create() error {
 
 // Update s with info
 func (s *Station) Update(info Station) error {
-	return errors.New("need to be written")
+
+	if s.Slug == "" {
+		s.Slug = slugify.Slugify(s.Name)
+	}
+
+	var found Station
+	if err := db.Where("slug = ?", s.Slug).First(&found).Error; err == nil {
+		return errors.New("station is using this slug")
+	}
+
+	return db.Model(&s).Updates(info).Error
 }
 
 // Delete s
