@@ -45,7 +45,7 @@ func TestIcii(t *testing.T) {
 		Password: "fake password",
 	}
 
-	// Create First User
+	// Create the first user.
 	if _, err := testPOST(userCreate, user); err != nil {
 		t.Error(err)
 	}
@@ -55,7 +55,7 @@ func TestIcii(t *testing.T) {
 		t.Error("user was able to use the same email twice")
 	}
 
-	// Create Second User
+	// Create the second user.
 	if _, err := testPOST(userCreate, user2); err != nil {
 		t.Error(err)
 	}
@@ -66,6 +66,7 @@ func TestIcii(t *testing.T) {
 		t.Error(err)
 	}
 
+	// Test a login with the wrong password.
 	if _, err := login(userLogin, database.User{Email: "user@name.com", Password: "wrong password"}); err == nil {
 		t.Error("able to log in with incorrect password")
 	}
@@ -75,8 +76,7 @@ func TestIcii(t *testing.T) {
 		t.Error(err)
 	}
 
-	// // Create a station.
-
+	// Create a station.
 	if err := token.post(station, database.Station{Name: "Generic Station"}); err != nil {
 		t.Error(err)
 	}
@@ -95,13 +95,16 @@ func TestIcii(t *testing.T) {
 	}
 
 	// Upload the file again.
-
 	if err := token.upload(track, p, "./test_audio/loping_sting.mp3"); err != nil {
 		t.Error(err)
 	}
 
-	// Delete the duplicate.
+	// Change the title of the first track
+	if err := token.post(track+"1/", database.Track{Title: "Loping String 2"}); err != nil {
+		t.Error(err)
+	}
 
+	// Delete the duplicate.
 	if err := token.delete(track + "2/"); err != nil {
 		t.Error(err)
 	}

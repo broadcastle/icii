@@ -29,6 +29,19 @@ func getJwtID(c echo.Context) (uint, error) {
 
 }
 
+func getIDfromParam(name string, c echo.Context) (uint, error) {
+
+	i := c.Param(name)
+
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(id), nil
+
+}
+
 func getStationID(i string) (uint, error) {
 
 	stationID, err := strconv.Atoi(i)
