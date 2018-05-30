@@ -31,6 +31,7 @@ func (s *Station) Create() error {
 	}
 
 	return db.Create(&s).Error
+
 }
 
 // Update s with info
@@ -48,22 +49,31 @@ func (s *Station) Update(i interface{}) error {
 	}
 
 	return db.Model(&s).Updates(info).Error
+
 }
 
 // Delete the station.
 func (s *Station) Delete() error {
+
 	return db.Delete(&s).Error
+
 }
 
 // Get the station information.
 func (s *Station) Get() error {
+
 	return db.Where(&s).First(&s).Error
+
 }
 
 // Echo gets the station struct from the echo context.
 func (s *Station) Echo(c echo.Context) error {
 
 	i := c.Param("station")
+
+	if c.FormValue("station") != "" {
+		i = c.FormValue("station")
+	}
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
@@ -73,4 +83,5 @@ func (s *Station) Echo(c echo.Context) error {
 	s.ID = uint(id)
 
 	return s.Get()
+
 }

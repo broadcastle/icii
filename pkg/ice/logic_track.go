@@ -1,20 +1,14 @@
 package ice
 
 import (
-	"io"
 	"log"
-	"mime/multipart"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/bogem/id3v2"
 	"github.com/labstack/echo"
-	uuid "github.com/satori/go.uuid"
-	"github.com/spf13/viper"
-	filetype "gopkg.in/h2non/filetype.v1"
 )
 
 // Track information
@@ -24,91 +18,58 @@ type Track struct {
 
 // Create makes a new track entry.
 func (t *Track) Create() error {
-	return nil
-}
 
-// Upload will upload a file with with track information.
-func (t *Track) Upload(file *multipart.FileHeader) error {
-
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-
-	u := uuid.NewV4()
-
-	ext := path.Ext(file.Filename)
-	tmp := path.Join(os.TempDir(), u.String()+ext)
-
-	dst, err := os.Create(tmp)
-	if err != nil {
-		return err
-	}
-
-	if _, err := io.Copy(dst, src); err != nil {
-		return err
-	}
-
-	t.Location = tmp
-
-	// Process the track. Let the user know the track is being processed.
-
-	go t.ProcessFile()
-
-	return nil
-}
-
-// ProcessFile edits the track.
-func (t *Track) ProcessFile() {
-
-	defer os.Remove(t.Location)
-
-	in, err := os.Open(t.Location)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	head := make([]byte, 261)
-	if _, err := in.Read(head); err != nil {
-		log.Println(err)
-		return
-	}
-
-	if !filetype.IsMIME(head, "audio/mpeg") {
-		os.Remove(t.Location)
-		return
-	}
-
-	end := viper.GetString("files.location")
-	_, filename := path.Split(t.Location)
-	end = path.Join(end, filename)
-
-	out, err := os.Create(end)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	if _, err := io.Copy(out, in); err != nil {
-		log.Println(err)
-		return
-	}
-
-	in.Close()
-	out.Close()
-
-	t.Location = end
-
-	// Process the Tags
 	t.FixTags()
 
-	// Create the database entry
-
 	if err := db.Create(&t).Error; err != nil {
-		log.Println(err)
-		os.Remove(end)
+		os.Remove(t.Location)
+		return err
 	}
+
+	return nil
+
+}
+
+// Get the first track with this info.
+func (t *Track) Get() error {
+
+	return db.Where(&t).First(&t).Error
+
+}
+
+// Update the track with the data from info.
+func (t *Track) Update(i interface{}) error {
+
+	info := i.(Track)
+
+	return db.Model(&t).Updates(info).Error
+
+}
+
+// Delete the track
+func (t *Track) Delete() error {
+
+	if err := os.Remove(t.Location); err != nil {
+		return err
+	}
+
+	return db.Delete(&t).Error
+
+}
+
+// Echo fills in t from data in c.
+func (t *Track) Echo(c echo.Context) error {
+
+	i := c.Param("track")
+
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		return err
+	}
+
+	t.ID = uint(id)
+
+	return t.Get()
 
 }
 
@@ -154,47 +115,5 @@ func (t *Track) FixTags() {
 	if t.Year == "" {
 		t.Year = tag.Year()
 	}
-
-}
-
-// Get the first track with this info.
-func (t *Track) Get() error {
-
-	return db.Where(&t).First(&t).Error
-
-}
-
-// Update the track with the data from info.
-func (t *Track) Update(i interface{}) error {
-
-	info := i.(Track)
-
-	return db.Model(&t).Updates(info).Error
-
-}
-
-// Delete the track
-func (t *Track) Delete() error {
-
-	if err := os.Remove(t.Location); err != nil {
-		return err
-	}
-
-	return db.Delete(&t).Error
-}
-
-// Echo fills in t from data in c.
-func (t *Track) Echo(c echo.Context) error {
-
-	i := c.Param("track")
-
-	id, err := strconv.Atoi(i)
-	if err != nil {
-		return err
-	}
-
-	t.ID = uint(id)
-
-	return t.Get()
 
 }

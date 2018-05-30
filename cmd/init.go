@@ -99,7 +99,7 @@ func (d configCreate) create() error {
 		"\nname = icii"
 
 	lc := "\n\n[files]" +
-		"\nlocation = \"" + db.files
+		"\nlocation = \"" + db.files + "\""
 
 	if d.temp {
 		dc = "\ntemp = true"

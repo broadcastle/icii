@@ -10,40 +10,38 @@ import (
 // Create a track entry in the database.
 func trackCreate(c echo.Context) error {
 
-	// Check if the token is valid.
-	userID, err := getJwtID(c)
-	if err != nil {
-		return c.JSON(msg(http.StatusMethodNotAllowed, err))
+	user := ice.InitUser()
+
+	if err := ice.Echo(user, c); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	//// Bind the sent data to a entry.
-
-	stationID, err := getStationID(c.FormValue("station"))
-	if err != nil {
-		return c.JSON(msg(http.StatusMethodNotAllowed, err))
-	}
-
-	var track ice.Track
-
-	track.UserID = userID
-	track.StationID = stationID
-	track.Title = c.FormValue("title")
-	track.Album = c.FormValue("album")
-	track.Artist = c.FormValue("artist")
-	track.Year = c.FormValue("year")
-	track.Genre = c.FormValue("genre")
-
-	// Get the audio file
 	file, err := c.FormFile("audio")
 	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	location, err := ice.FormImportFile(file)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	track := ice.InitTrack()
+
+	track.(*ice.Track).UserID = user.(*ice.User).ID
+	track.(*ice.Track).Title = c.FormValue("title")
+	track.(*ice.Track).Album = c.FormValue("album")
+	track.(*ice.Track).Artist = c.FormValue("artist")
+	track.(*ice.Track).Year = c.FormValue("year")
+	track.(*ice.Track).Genre = c.FormValue("genre")
+	track.(*ice.Track).Location = location
+
+	if err := ice.New(track); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	if err := track.Upload(file); err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, err)
-	}
+	return c.JSON(http.StatusOK, "success")
 
-	return c.JSON(http.StatusOK, "track is being processed")
 }
 
 // Retrieve a track when given an ID.
