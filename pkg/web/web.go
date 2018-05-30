@@ -99,9 +99,9 @@ func Start(port int) {
 
 	si := s.Group("/:station")
 
-	si.POST("/", notImplemented)
-	si.GET("/", notImplemented)
-	si.DELETE("/", notImplemented)
+	si.POST("/", stationUpdate)
+	si.GET("/", stationRetrieve)
+	si.DELETE("/", stationDelete)
 
 	//// Station Users
 	r := si.Group("/user")

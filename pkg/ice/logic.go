@@ -32,12 +32,7 @@ func (user *User) Create() error {
 
 	user.Password = string(hash)
 
-	if err := db.Create(&user).Error; err != nil {
-		return err
-	}
-
-	return nil
-
+	return db.Create(&user).Error
 }
 
 // Update user with the data from info
@@ -73,6 +68,16 @@ func (user User) Delete() error {
 // Get a user
 func (user *User) Get() error {
 	return db.Where(&user).First(&user).Error
+}
+
+// Echo gets the user from the echo context jwt.
+func (user *User) Echo(c echo.Context) error {
+
+	i := c.Get("user").(*jwt.Token).Claims.(jwt.MapClaims)["id"].(float64)
+
+	user.ID = uint(i)
+
+	return user.Get()
 }
 
 // Not in the interface
@@ -132,11 +137,7 @@ func (user User) CreateStation(info Station) error {
 		PlaylistWrite: true,
 	}
 
-	if err := db.Create(&permissions).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Create(&permissions).Error
 
 }
 

@@ -79,11 +79,11 @@ func trackUpdate(c echo.Context) error {
 		return c.JSON(msg(http.StatusForbidden, err))
 	}
 
-	//// Get the ID as an integer
-	id, err := getIDfromParam("track", c)
-	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
+	// //// Get the ID as an integer
+	// id, err := getIDfromParam("track", c)
+	// if err != nil {
+	// 	return c.JSON(msg(http.StatusInternalServerError, err))
+	// }
 
 	// Bind the updated information to a Track struct.
 	var update ice.Track
@@ -91,18 +91,28 @@ func trackUpdate(c echo.Context) error {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	var original ice.Track
-	original.ID = id
+	// var original ice.Track
+	// original.ID = id
 
-	if err := original.Get(); err != nil {
-		return c.JSON(http.StatusNotFound, err)
-	}
+	// if err := original.Get(); err != nil {
+	// 	return c.JSON(http.StatusNotFound, err)
+	// }
 
-	if err := original.Update(update); err != nil {
+	// if err := original.Update(update); err != nil {
+	// 	return c.JSON(http.StatusMethodNotAllowed, err)
+	// }
+
+	track := ice.InitTrack()
+
+	if err := ice.Echo(track, c); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	return c.JSON(http.StatusOK, original)
+	if err := ice.Update(track, update); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
+	return c.JSON(http.StatusOK, track)
 
 }
 

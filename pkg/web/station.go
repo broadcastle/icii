@@ -32,3 +32,15 @@ func stationCreate(c echo.Context) error {
 	return c.JSON(http.StatusOK, station)
 
 }
+
+func stationUpdate(c echo.Context) error {
+	return nil
+}
+
+func stationRetrieve(c echo.Context) error {
+	return nil
+}
+
+func stationDelete(c echo.Context) error {
+	return nil
+}

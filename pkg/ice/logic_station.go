@@ -2,8 +2,10 @@ package ice
 
 import (
 	"errors"
+	"strconv"
 
 	"broadcastle.co/code/icii/pkg/database"
+	"github.com/labstack/echo"
 	slugify "github.com/mozillazg/go-slugify"
 )
 
@@ -56,4 +58,19 @@ func (s *Station) Delete() error {
 // Get the station information.
 func (s *Station) Get() error {
 	return db.Where(&s).First(&s).Error
+}
+
+// Echo gets the station struct from the echo context.
+func (s *Station) Echo(c echo.Context) error {
+
+	i := c.Param("station")
+
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		return err
+	}
+
+	s.ID = uint(id)
+
+	return s.Get()
 }

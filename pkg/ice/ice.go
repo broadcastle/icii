@@ -3,10 +3,15 @@ package ice
 import (
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/jinzhu/gorm"
+	"github.com/labstack/echo"
 	"github.com/spf13/viper"
 )
 
 var db *gorm.DB
+
+///////////////
+// Interface //
+///////////////
 
 // Data is the interface.
 type Data interface {
@@ -14,16 +19,7 @@ type Data interface {
 	Delete() error
 	Get() error
 	Update(interface{}) error
-}
-
-// InitUser is used to create a empty user variable.
-func InitUser() Data {
-	return &User{}
-}
-
-// InitStation is used the create a empty station variable.
-func InitStation() Data {
-	return &Station{}
+	Echo(echo.Context) error
 }
 
 // New creates d.
@@ -45,6 +41,34 @@ func Find(d Data) error {
 func Update(d Data, i interface{}) error {
 	return d.Update(i)
 }
+
+// Echo gets d from c.
+func Echo(d Data, c echo.Context) error {
+	return d.Echo(c)
+}
+
+//////////////////
+// Init returns //
+//////////////////
+
+// InitUser is used to create a empty user variable.
+func InitUser() Data {
+	return &User{}
+}
+
+// InitStation is used the create a empty station variable.
+func InitStation() Data {
+	return &Station{}
+}
+
+// InitTrack is used to create a empty track variable.
+func InitTrack() Data {
+	return &Track{}
+}
+
+///////////////////////
+// Database Controls //
+///////////////////////
 
 // Start the database.
 func Start() error {

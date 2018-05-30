@@ -7,9 +7,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/bogem/id3v2"
+	"github.com/labstack/echo"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	filetype "gopkg.in/h2non/filetype.v1"
@@ -18,6 +20,11 @@ import (
 // Track information
 type Track struct {
 	database.Track
+}
+
+// Create makes a new track entry.
+func (t *Track) Create() error {
+	return nil
 }
 
 // Upload will upload a file with with track information.
@@ -158,7 +165,9 @@ func (t *Track) Get() error {
 }
 
 // Update the track with the data from info.
-func (t *Track) Update(info Track) error {
+func (t *Track) Update(i interface{}) error {
+
+	info := i.(Track)
 
 	return db.Model(&t).Updates(info).Error
 
@@ -172,4 +181,20 @@ func (t *Track) Delete() error {
 	}
 
 	return db.Delete(&t).Error
+}
+
+// Echo fills in t from data in c.
+func (t *Track) Echo(c echo.Context) error {
+
+	i := c.Param("track")
+
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		return err
+	}
+
+	t.ID = uint(id)
+
+	return t.Get()
+
 }

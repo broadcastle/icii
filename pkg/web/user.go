@@ -44,8 +44,9 @@ func userLogin(c echo.Context) error {
 
 func userDelete(c echo.Context) error {
 
-	user, err := ice.GetUserFromContext(c)
-	if err != nil {
+	user := ice.InitUser()
+
+	if err := ice.Echo(user, c); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -59,8 +60,9 @@ func userDelete(c echo.Context) error {
 
 func userUpdate(c echo.Context) error {
 
-	user, err := ice.GetUserFromContext(c)
-	if err != nil {
+	user := ice.InitUser()
+
+	if err := ice.Echo(user, c); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -70,7 +72,6 @@ func userUpdate(c echo.Context) error {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	// if err := user.Update(new); err != nil {
 	if err := ice.Update(user, new); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
@@ -81,12 +82,12 @@ func userUpdate(c echo.Context) error {
 
 func userRetrieve(c echo.Context) error {
 
-	user, err := ice.GetUserFromContext(c)
-	if err != nil {
+	user := ice.InitUser()
+
+	if err := ice.Echo(user, c); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	// if err := user.Get(); err != nil {
 	if err := ice.Find(user); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
