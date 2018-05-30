@@ -9,15 +9,15 @@ import (
 
 func userCreate(c echo.Context) error {
 
-	// Bind the sent data to the User struct.
-	var user ice.User
+	// Bind the sent data.
+	user := ice.InitUser()
 
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	// Create the user.
-	if err := user.Create(); err != nil {
+	if err := ice.New(user); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -49,7 +49,7 @@ func userDelete(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	if err := user.Delete(); err != nil {
+	if err := ice.Remove(user); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -70,7 +70,8 @@ func userUpdate(c echo.Context) error {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	if err := user.Update(new); err != nil {
+	// if err := user.Update(new); err != nil {
+	if err := ice.Update(user, new); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -85,7 +86,8 @@ func userRetrieve(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	if err := user.Get(); err != nil {
+	// if err := user.Get(); err != nil {
+	if err := ice.Find(user); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 

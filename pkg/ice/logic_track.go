@@ -15,13 +15,6 @@ import (
 	filetype "gopkg.in/h2non/filetype.v1"
 )
 
-// Data interface
-type Data interface {
-	Create() error
-	Get() error
-	Delete() error
-}
-
 // Track information
 type Track struct {
 	database.Track

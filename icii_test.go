@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -169,7 +170,14 @@ func (t Token) post(u string, i interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("unable to post to %v\nreason:\n%v\n%v", u, resp.StatusCode, resp.Body)
+
+		d, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		log.Printf("unable to post to %v\nreason: %v\n%s", u, resp.StatusCode, string(d))
 	}
 
 	return nil

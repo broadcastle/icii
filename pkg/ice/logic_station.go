@@ -32,7 +32,9 @@ func (s *Station) Create() error {
 }
 
 // Update s with info
-func (s *Station) Update(info Station) error {
+func (s *Station) Update(i interface{}) error {
+
+	info := i.(Station)
 
 	if s.Slug == "" {
 		s.Slug = slugify.Slugify(s.Name)
@@ -46,7 +48,12 @@ func (s *Station) Update(info Station) error {
 	return db.Model(&s).Updates(info).Error
 }
 
-// Delete s
+// Delete the station.
 func (s *Station) Delete() error {
-	return errors.New("need to be written")
+	return db.Delete(&s).Error
+}
+
+// Get the station information.
+func (s *Station) Get() error {
+	return db.Where(&s).First(&s).Error
 }

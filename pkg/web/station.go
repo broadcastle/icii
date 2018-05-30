@@ -9,22 +9,26 @@ import (
 
 func stationCreate(c echo.Context) error {
 
+	station := ice.InitStation()
+
+	if err := c.Bind(&station); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	if err := ice.New(station); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
+	// CLEAN UP
 	user, err := ice.GetUserFromContext(c)
 	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	if err := user.(*ice.User).CreateStation(*station.(*ice.Station)); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	// Bind the station information.
-	var info ice.Station
+	return c.JSON(http.StatusOK, station)
 
-	if err := c.Bind(&info); err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
-
-	// Create the station.
-	if err := user.CreateStation(info); err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, err)
-	}
-
-	return c.JSON(http.StatusOK, info)
 }

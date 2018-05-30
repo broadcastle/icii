@@ -8,6 +8,44 @@ import (
 
 var db *gorm.DB
 
+// Data is the interface.
+type Data interface {
+	Create() error
+	Delete() error
+	Get() error
+	Update(interface{}) error
+}
+
+// InitUser is used to create a empty user variable.
+func InitUser() Data {
+	return &User{}
+}
+
+// InitStation is used the create a empty station variable.
+func InitStation() Data {
+	return &Station{}
+}
+
+// New creates d.
+func New(d Data) error {
+	return d.Create()
+}
+
+// Remove deletes d.
+func Remove(d Data) error {
+	return d.Delete()
+}
+
+// Find gets the rest of d.
+func Find(d Data) error {
+	return d.Get()
+}
+
+// Update d with the data from i.
+func Update(d Data, i interface{}) error {
+	return d.Update(i)
+}
+
 // Start the database.
 func Start() error {
 
