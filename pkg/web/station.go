@@ -3,18 +3,19 @@ package web
 import (
 	"net/http"
 
+	"broadcastle.co/code/icii/pkg/ice"
 	"github.com/labstack/echo"
 )
 
 func stationCreate(c echo.Context) error {
 
-	user, err := GetUserFromContext(c)
+	user, err := ice.GetUserFromContext(c)
 	if err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
 	// Bind the station information.
-	var info Station
+	var info ice.Station
 
 	if err := c.Bind(&info); err != nil {
 		return c.JSON(msg(http.StatusInternalServerError, err))

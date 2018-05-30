@@ -3,7 +3,7 @@ package web
 import (
 	"strconv"
 
-	"broadcastle.co/code/icii/pkg/database"
+	"broadcastle.co/code/icii/pkg/ice"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
@@ -19,13 +19,16 @@ func getJwtID(c echo.Context) (uint, error) {
 
 	i := c.Get("user").(*jwt.Token).Claims.(jwt.MapClaims)["id"].(float64)
 
-	var user database.User
+	id := uint(i)
 
-	if err := db.First(&user, uint(i)).Error; err != nil {
+	var user ice.User
+	user.ID = id
+
+	if err := user.Get(); err != nil {
 		return 0, err
 	}
 
-	return uint(i), nil
+	return id, nil
 
 }
 

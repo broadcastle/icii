@@ -3,13 +3,14 @@ package web
 import (
 	"net/http"
 
+	"broadcastle.co/code/icii/pkg/ice"
 	"github.com/labstack/echo"
 )
 
 func userCreate(c echo.Context) error {
 
 	// Bind the sent data to the User struct.
-	var user User
+	var user ice.User
 
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -26,7 +27,7 @@ func userCreate(c echo.Context) error {
 func userLogin(c echo.Context) error {
 
 	// Bind the email and password
-	var user User
+	var user ice.User
 
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -43,7 +44,7 @@ func userLogin(c echo.Context) error {
 
 func userDelete(c echo.Context) error {
 
-	user, err := GetUserFromContext(c)
+	user, err := ice.GetUserFromContext(c)
 	if err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
@@ -58,12 +59,12 @@ func userDelete(c echo.Context) error {
 
 func userUpdate(c echo.Context) error {
 
-	user, err := GetUserFromContext(c)
+	user, err := ice.GetUserFromContext(c)
 	if err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	var new User
+	var new ice.User
 
 	if err := c.Bind(&new); err != nil {
 		return c.JSON(msg(http.StatusInternalServerError, err))
@@ -79,7 +80,7 @@ func userUpdate(c echo.Context) error {
 
 func userRetrieve(c echo.Context) error {
 
-	user, err := GetUserFromContext(c)
+	user, err := ice.GetUserFromContext(c)
 	if err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}

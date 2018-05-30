@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"broadcastle.co/code/icii/pkg/ice"
 	"github.com/labstack/echo"
 )
 
@@ -22,7 +23,7 @@ func trackCreate(c echo.Context) error {
 		return c.JSON(msg(http.StatusMethodNotAllowed, err))
 	}
 
-	var track Track
+	var track ice.Track
 
 	track.UserID = userID
 	track.StationID = stationID
@@ -60,7 +61,7 @@ func trackGet(c echo.Context) error {
 	}
 
 	// Find the track with that ID and return the data.
-	var track Track
+	var track ice.Track
 	track.ID = id
 
 	if err := track.Get(); err != nil {
@@ -85,12 +86,12 @@ func trackUpdate(c echo.Context) error {
 	}
 
 	// Bind the updated information to a Track struct.
-	var update Track
+	var update ice.Track
 	if err := c.Bind(&update); err != nil {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
 
-	var original Track
+	var original ice.Track
 	original.ID = id
 
 	if err := original.Get(); err != nil {
@@ -120,7 +121,7 @@ func trackDelete(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	var track Track
+	var track ice.Track
 	track.ID = id
 
 	if err := track.Get(); err != nil {

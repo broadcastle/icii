@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"broadcastle.co/code/icii/pkg/database"
-	"github.com/jinzhu/gorm"
+	"broadcastle.co/code/icii/pkg/ice"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"
 )
 
-var db *gorm.DB
+// var db *gorm.DB
 
 // Start runs the web interface.
 func Start(port int) {
@@ -23,30 +22,38 @@ func Start(port int) {
 
 	e.HideBanner = true
 
+	// Ice database
+
+	if err := ice.Start(); err != nil {
+		log.Panic(err)
+	}
+
+	defer ice.Close()
+
 	//// Start the database
-	c := database.Config{
-		Temp: viper.GetBool("database.temp"),
-	}
+	// c := database.Config{
+	// 	Temp: viper.GetBool("database.temp"),
+	// }
 
-	// If this is not a temporary database.
-	if !c.Temp {
-		c.Database = viper.GetString("database.database")
-		c.Host = viper.GetString("database.host")
-		c.Password = viper.GetString("database.password")
-		c.Port = viper.GetInt("database.port")
-		c.Postgres = viper.GetBool("database.postgres")
-		c.User = viper.GetString("database.user")
-	}
+	// // If this is not a temporary database.
+	// if !c.Temp {
+	// 	c.Database = viper.GetString("database.database")
+	// 	c.Host = viper.GetString("database.host")
+	// 	c.Password = viper.GetString("database.password")
+	// 	c.Port = viper.GetInt("database.port")
+	// 	c.Postgres = viper.GetBool("database.postgres")
+	// 	c.User = viper.GetString("database.user")
+	// }
 
-	var err error
+	// var err error
 
-	// Get the database up and running.
-	db, err = c.Connect()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// // Get the database up and running.
+	// db, err = c.Connect()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	defer db.Close()
+	// defer db.Close()
 
 	// Get the middleware up and running.
 	e.Static("/", "public")
