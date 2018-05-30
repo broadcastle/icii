@@ -51,21 +51,13 @@ func trackGet(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(msg(http.StatusForbidden, err))
+		return c.JSON(http.StatusForbidden, err)
 	}
 
-	// Get the ID as an integer.
-	id, err := getIDfromParam("track", c)
-	if err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
-	}
+	track := ice.InitTrack()
 
-	// Find the track with that ID and return the data.
-	var track ice.Track
-	track.ID = id
-
-	if err := track.Get(); err != nil {
-		return c.JSON(http.StatusNotFound, err)
+	if err := ice.Echo(track, c); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, track)
@@ -79,28 +71,11 @@ func trackUpdate(c echo.Context) error {
 		return c.JSON(msg(http.StatusForbidden, err))
 	}
 
-	// //// Get the ID as an integer
-	// id, err := getIDfromParam("track", c)
-	// if err != nil {
-	// 	return c.JSON(msg(http.StatusInternalServerError, err))
-	// }
-
 	// Bind the updated information to a Track struct.
 	var update ice.Track
 	if err := c.Bind(&update); err != nil {
 		return c.JSON(msg(http.StatusInternalServerError, err))
 	}
-
-	// var original ice.Track
-	// original.ID = id
-
-	// if err := original.Get(); err != nil {
-	// 	return c.JSON(http.StatusNotFound, err)
-	// }
-
-	// if err := original.Update(update); err != nil {
-	// 	return c.JSON(http.StatusMethodNotAllowed, err)
-	// }
 
 	track := ice.InitTrack()
 
@@ -126,19 +101,13 @@ func trackDelete(c echo.Context) error {
 
 	// Get the ID as an iteger and check that it's not 0.
 
-	id, err := getIDfromParam("track", c)
-	if err != nil {
+	track := ice.InitTrack()
+
+	if err := ice.Echo(track, c); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	var track ice.Track
-	track.ID = id
-
-	if err := track.Get(); err != nil {
-		return c.JSON(http.StatusNotFound, err)
-	}
-
-	if err := track.Delete(); err != nil {
+	if err := ice.Remove(track); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 

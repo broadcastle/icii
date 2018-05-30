@@ -24,24 +24,6 @@ func userCreate(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
-func userLogin(c echo.Context) error {
-
-	// Bind the email and password
-	var user ice.User
-
-	if err := c.Bind(&user); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	// Login
-	t, err := user.Login()
-	if err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, err)
-	}
-
-	return c.JSON(msg(http.StatusOK, t))
-}
-
 func userDelete(c echo.Context) error {
 
 	user := ice.InitUser()
@@ -88,10 +70,24 @@ func userRetrieve(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	if err := ice.Find(user); err != nil {
+	return c.JSON(http.StatusOK, user)
+
+}
+
+func userLogin(c echo.Context) error {
+
+	// Bind the email and password
+	var user ice.User
+
+	if err := c.Bind(&user); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	// Login
+	t, err := user.Login()
+	if err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	return c.JSON(http.StatusOK, user)
-
+	return c.JSON(msg(http.StatusOK, t))
 }
