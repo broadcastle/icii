@@ -103,24 +103,43 @@ func Start(port int) {
 	si.GET("/", stationRetrieve)
 	si.DELETE("/", stationDelete)
 
-	//// Station Users
-	r := si.Group("/user")
+	///////////////////
+	// Station Users //
+	///////////////////
 
-	r.POST("/", notImplemented)
-	r.POST("/:user/", notImplemented)
-	r.GET("/:user/", notImplemented)
-	r.DELETE("/:user/", notImplemented)
+	user := si.Group("/user")
 
-	//// Tracks
+	user.POST("/", notImplemented)
+	user.POST("/:user/", notImplemented)
+	user.GET("/:user/", notImplemented)
+	user.DELETE("/:user/", notImplemented)
 
-	t := si.Group("/track")
+	////////////////////
+	// Station Tracks //
+	////////////////////
 
-	t.POST("/", trackCreate)
-	t.POST("/:track/", trackUpdate)
-	t.GET("/:track/", trackGet)
-	t.DELETE("/:track/", trackDelete)
+	trk := si.Group("/track")
 
-	t.POST("/:track/play/", trackPlay)
+	trk.POST("/", trackCreate)
+	trk.POST("/:track/", trackUpdate)
+	trk.GET("/:track/", trackGet)
+	trk.DELETE("/:track/", trackDelete)
+
+	trk.POST("/:track/play/", trackPlay)
+
+	////////////////////
+	// Station Stream //
+	////////////////////
+
+	strm := si.Group("/stream")
+
+	strm.POST("/", notImplemented)
+	strm.GET("/", notImplemented)
+	strm.DELETE("/", notImplemented)
+
+	//////////////
+	// Playlist //
+	//////////////
 
 	p := si.Group("/playlist")
 

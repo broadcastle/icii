@@ -66,6 +66,11 @@ func InitTrack() Data {
 	return &Track{}
 }
 
+// InitStream is used to create a empty stream variable.
+func InitStream() Data {
+	return &Stream{}
+}
+
 ///////////////////////
 // Database Controls //
 ///////////////////////

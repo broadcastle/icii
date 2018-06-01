@@ -60,9 +60,12 @@ type Station struct {
 	Public bool   `json:"public"`
 
 	// Relationships between users and tracks.
-	Users   []*User  `gorm:"many2many:user_stations;" json:"users"`
-	Track   []Track  `json:"audio"`
-	Streams []Stream `json:"stream"`
+	Users []*User `gorm:"many2many:user_stations;" json:"users"`
+	Track []Track `json:"audio"`
+
+	// Stations
+	Stream   Stream
+	StreamID uint `json:"stream"`
 }
 
 // UserPermission keeps track of what permission are allowed for a user.
