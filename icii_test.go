@@ -26,7 +26,7 @@ func TestIcii(t *testing.T) {
 	userLogin := userCreate + "login/"
 	userEdit := userCreate + "edit/"
 	station := base + "station/"
-	track := base + "track/"
+	track := station + "1/track/"
 
 	cmd.Execute()
 
@@ -110,6 +110,11 @@ func TestIcii(t *testing.T) {
 		t.Error(err)
 	}
 
+	// Play the first track.
+	if err := token.post(track+"1/play/", nil); err != nil {
+		t.Error(err)
+	}
+
 	return
 
 }
@@ -177,22 +182,6 @@ func (t Token) post(u string, i interface{}) error {
 
 }
 
-func statusError(link string, resp *http.Response) error {
-
-	if resp.StatusCode != http.StatusOK {
-
-		d, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		log.Printf("unable to post to %v\nreason: %v\n%s", link, resp.StatusCode, string(d))
-	}
-
-	return nil
-}
-
 func (t Token) get(u string) error {
 
 	req, err := http.NewRequest("GET", u, nil)
@@ -211,9 +200,6 @@ func (t Token) get(u string) error {
 
 	defer resp.Body.Close()
 
-	// if resp.StatusCode != http.StatusOK {
-	// 	log.Printf("unable to retrieve %v\nreason:\n%v\n%v", u, resp.StatusCode, resp.Body)
-	// }
 	if err := statusError(u, resp); err != nil {
 		return err
 	}
@@ -240,9 +226,6 @@ func (t Token) delete(u string) error {
 
 	defer resp.Body.Close()
 
-	// if resp.StatusCode != http.StatusOK {
-	// 	log.Printf("Unable to delete %v: %v\n%v", u, resp.StatusCode, resp.Body)
-	// }
 	if err := statusError(u, resp); err != nil {
 		return err
 	}
@@ -296,9 +279,6 @@ func (t Token) upload(u string, params map[string]string, path string) error {
 
 	defer resp.Body.Close()
 
-	// if resp.StatusCode != http.StatusOK {
-	// 	log.Println(resp.Body)
-	// }
 	if err := statusError(u, resp); err != nil {
 		return err
 	}
@@ -316,4 +296,20 @@ func testPOST(u string, i interface{}) (*http.Response, error) {
 
 	return http.Post(u, "application/json", bytes.NewReader(j))
 
+}
+
+func statusError(link string, resp *http.Response) error {
+
+	if resp.StatusCode != http.StatusOK {
+
+		d, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		log.Printf("unable to post to %v\nreason: %v\n%s", link, resp.StatusCode, string(d))
+	}
+
+	return nil
 }

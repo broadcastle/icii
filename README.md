@@ -26,9 +26,9 @@ Stream MP3 files to icecast with go.
     POST    |   Update a station.
     GET     |   Get station information.
     DELETE  |   Delete the station.
-/track
+/station/:id/track
     POST    |   Upload a track.
-/track/:id
+/station/:id/track/:id
     POST    |   Update track information.
     GET     |   Get track information.
     DELETE  |   Delete the track.

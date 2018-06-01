@@ -19,6 +19,7 @@ type Track struct {
 	Tags  []Tag  `json:"tags"`
 
 	// Calculated information.
+	Processed bool    `json:"processed"`
 	Length    float64 `json:"length"`
 	Location  string  `json:"location"`
 	StationID uint    `json:"organization_id"`
@@ -46,7 +47,7 @@ type User struct {
 	Password string `json:"password"`
 
 	// Relationship between the users and the stations.
-	Stations []*Station `gorm:"many2many:user_stations;" json:"organizations"`
+	Stations []*Station `gorm:"many2many:user_stations;" json:"stations"`
 }
 
 // A Station holds the audio tracks and users.
@@ -59,8 +60,9 @@ type Station struct {
 	Public bool   `json:"public"`
 
 	// Relationships between users and tracks.
-	Users []*User `gorm:"many2many:user_stations;" json:"users"`
-	Track []Track `json:"audio"`
+	Users   []*User  `gorm:"many2many:user_stations;" json:"users"`
+	Track   []Track  `json:"audio"`
+	Streams []Stream `json:"stream"`
 }
 
 // UserPermission keeps track of what permission are allowed for a user.
@@ -96,6 +98,22 @@ type UserPermission struct {
 
 }
 
+// Stream has the information about a stream.
+type Stream struct {
+	gorm.Model
+
+	Host        string `json:"string"`
+	Port        int    `json:"port"`
+	Mount       string `json:"mount"`
+	User        string `json:"user"`
+	Password    string `json:"password"`
+	Name        string `json:"stream_name"`
+	URL         string `json:"url"`
+	Genre       string `json:"genre"`
+	Description string `json:"description"`
+	BufferSize  int    `json:"buffer_size"`
+}
+
 // Initialize the database tables.
 func initIciiTables(d *gorm.DB) {
 	d.AutoMigrate(&Station{})
@@ -103,4 +121,5 @@ func initIciiTables(d *gorm.DB) {
 	d.AutoMigrate(&Track{})
 	d.AutoMigrate(&UserPermission{})
 	d.AutoMigrate(&User{})
+	d.AutoMigrate(&Stream{})
 }

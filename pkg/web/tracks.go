@@ -16,6 +16,12 @@ func trackCreate(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
+	station := ice.InitStation()
+
+	if err := ice.Echo(station, c); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
 	file, err := c.FormFile("audio")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -35,6 +41,7 @@ func trackCreate(c echo.Context) error {
 	track.(*ice.Track).Year = c.FormValue("year")
 	track.(*ice.Track).Genre = c.FormValue("genre")
 	track.(*ice.Track).Location = location
+	track.(*ice.Track).StationID = station.(*ice.Station).ID
 
 	if err := ice.New(track); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
@@ -110,4 +117,19 @@ func trackDelete(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "successfully deleted")
+}
+
+func trackPlay(c echo.Context) error {
+
+	track := ice.InitTrack()
+
+	if err := ice.Echo(track, c); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
+	if err := track.(*ice.Track).Play(); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, "playing")
 }

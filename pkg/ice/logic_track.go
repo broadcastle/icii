@@ -67,7 +67,14 @@ func (t *Track) Echo(c echo.Context) error {
 		return err
 	}
 
+	s := c.Param("station")
+	sid, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+
 	t.ID = uint(id)
+	t.StationID = uint(sid)
 
 	return t.Get()
 
@@ -116,4 +123,9 @@ func (t *Track) FixTags() {
 		t.Year = tag.Year()
 	}
 
+}
+
+// Play will take a valid t and play it.
+func (t Track) Play() error {
+	return nil
 }

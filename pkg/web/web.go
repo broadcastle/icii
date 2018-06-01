@@ -113,18 +113,16 @@ func Start(port int) {
 
 	//// Tracks
 
-	t := a.Group("/track")
-
-	useJWT(t)
+	t := si.Group("/track")
 
 	t.POST("/", trackCreate)
 	t.POST("/:track/", trackUpdate)
 	t.GET("/:track/", trackGet)
 	t.DELETE("/:track/", trackDelete)
 
-	p := a.Group("/playlist")
+	t.POST("/:track/play/", trackPlay)
 
-	useJWT(p)
+	p := si.Group("/playlist")
 
 	p.POST("/", playlistCreate)
 	p.POST("/:playlist/", playlistUpdate)
