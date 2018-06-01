@@ -63,9 +63,8 @@ type Station struct {
 	Users []*User `gorm:"many2many:user_stations;" json:"users"`
 	Track []Track `json:"audio"`
 
-	// Stations
-	Stream   Stream
-	StreamID uint `json:"stream"`
+	// Streams
+	Streams []Stream
 }
 
 // UserPermission keeps track of what permission are allowed for a user.
@@ -105,16 +104,17 @@ type UserPermission struct {
 type Stream struct {
 	gorm.Model
 
-	Host        string `json:"string"`
-	Port        int    `json:"port"`
-	Mount       string `json:"mount"`
-	User        string `json:"user"`
-	Password    string `json:"password"`
+	Host        string `json:"string" gorm:"default:'127.0.0.1'"`
+	Port        int    `json:"port" gorm:"default:'8080'"`
+	Mount       string `json:"mount" gorm:"default:'stream'"`
+	User        string `json:"user" gorm:"default:'source'"`
+	Password    string `json:"password" gorm:"default:'hackme'"`
 	Name        string `json:"stream_name"`
 	URL         string `json:"url"`
-	Genre       string `json:"genre"`
+	Genre       string `json:"genre" gorm:"default:'rock'"`
 	Description string `json:"description"`
-	BufferSize  int    `json:"buffer_size"`
+	BufferSize  int    `json:"buffer_size" gorm:"default:'3'"`
+	StationID   uint   `json:"station_id"`
 }
 
 // Initialize the database tables.

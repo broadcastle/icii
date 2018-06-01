@@ -73,13 +73,13 @@ func trackUpdate(c echo.Context) error {
 
 	// Check if the token is valid.
 	if _, err := getJwtID(c); err != nil {
-		return c.JSON(msg(http.StatusForbidden, err))
+		return c.JSON(http.StatusForbidden, err)
 	}
 
 	// Bind the updated information to a Track struct.
 	var update ice.Track
 	if err := c.Bind(&update); err != nil {
-		return c.JSON(msg(http.StatusInternalServerError, err))
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	track := ice.InitTrack()
@@ -116,7 +116,7 @@ func trackDelete(c echo.Context) error {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
-	return c.JSON(http.StatusOK, "successfully deleted")
+	return c.JSON(http.StatusOK, "success")
 }
 
 func trackPlay(c echo.Context) error {

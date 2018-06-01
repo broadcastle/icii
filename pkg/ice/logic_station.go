@@ -30,7 +30,19 @@ func (s *Station) Create() error {
 		return errors.New("station exists")
 	}
 
-	return db.Create(&s).Error
+	// return db.Create(&s).Error
+
+	if err := db.Create(&s).Error; err != nil {
+		return err
+	}
+
+	var stream Stream
+	stream.StationID = s.ID
+	stream.Name = s.Name + "'s Stream"
+	stream.Description = "Stream for " + s.Name
+	stream.URL = "/" + s.Slug
+
+	return db.Create(&stream).Error
 
 }
 

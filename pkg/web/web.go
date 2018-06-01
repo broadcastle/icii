@@ -134,8 +134,9 @@ func Start(port int) {
 	strm := si.Group("/stream")
 
 	strm.POST("/", streamPost)
-	strm.GET("/", streamGet)
-	strm.DELETE("/", streamDelete)
+	strm.POST("/:stream/", streamUpdate)
+	strm.GET("/:stream/", streamGet)
+	strm.DELETE("/:stream/", streamDelete)
 
 	//////////////
 	// Playlist //
