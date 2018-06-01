@@ -9,10 +9,10 @@ type Track struct {
 	gorm.Model
 
 	// Necessary information.
-	Album  string `json:"album"`
-	Artist string `json:"artist"`
-	Title  string `json:"title"`
-	Year   string `json:"year"`
+	Album  string `json:"album" gorm:"default:'Unknown Album'"`
+	Artist string `json:"artist" gorm:"default:'Unknown Artist'"`
+	Title  string `json:"title" gorm:"default:'Unknown Title'"`
+	Year   string `json:"year" gorm:"default:'1776'"`
 
 	// Optional information.
 	Genre string `json:"genre"`
