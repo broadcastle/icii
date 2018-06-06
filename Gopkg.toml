@@ -24,3 +24,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/tcolgate/mp3"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.5"

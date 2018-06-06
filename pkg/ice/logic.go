@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"broadcastle.co/code/icii/pkg/database"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -18,6 +20,8 @@ type User struct {
 
 // Create a user.
 func (user *User) Create() error {
+
+	log.Info("creating user")
 
 	var found database.User
 

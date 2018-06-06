@@ -2,7 +2,7 @@ package web
 
 import (
 	"html/template"
-	"log"
+	// "log"
 	"net/http"
 	"strconv"
 
@@ -10,9 +10,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"
-)
 
-// var db *gorm.DB
+	log "github.com/sirupsen/logrus"
+)
 
 // Start runs the web interface.
 func Start(port int) {
@@ -149,7 +149,7 @@ func Start(port int) {
 	p.GET("/:playlist/", playlistGet)
 	p.DELETE("/:playlist/", playlistDelete)
 
-	e.Logger.Fatal(e.Start(":" + strconv.Itoa(port)))
+	log.Fatal(e.Start(":" + strconv.Itoa(port)))
 
 }
 

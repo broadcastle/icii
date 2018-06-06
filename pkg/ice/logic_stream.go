@@ -2,8 +2,9 @@ package ice
 
 import (
 	"errors"
-	"log"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/labstack/echo"
@@ -30,11 +31,16 @@ func (s *Stream) Delete() error {
 	var results uint
 
 	if err := db.Model(&Stream{}).Where("station_id = ? ", s.StationID).Count(&results).Error; err != nil {
-		log.Printf("stream.Delete(): %v", err)
+		// log.Printf("stream.Delete(): %v", err)
+		// log.WithFields(log.Fields{
+		// 	"context": "database creation",
+		// }).Warn(err)
+		log.Info(err)
 		return err
 	}
 
 	if int(results) < 2 {
+		log.Warn("unable to delete stream")
 		return errors.New("unable to delete last stream")
 	}
 

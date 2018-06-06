@@ -1,7 +1,6 @@
 package ice
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/bogem/id3v2"
 	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
 )
 
 // Track information
@@ -23,8 +23,11 @@ func (t *Track) Create() error {
 
 	if err := db.Create(&t).Error; err != nil {
 		os.Remove(t.Location)
+		log.Warn(err)
 		return err
 	}
+
+	log.Infof("icii created track #%x for user #%x", t.ID, t.UserID)
 
 	return nil
 
@@ -33,7 +36,14 @@ func (t *Track) Create() error {
 // Get the first track with this info.
 func (t *Track) Get() error {
 
-	return db.Where(&t).First(&t).Error
+	if err := db.Where(&t).First(&t).Error; err != nil {
+		log.Warn(err)
+		return err
+	}
+
+	log.Infof("icii retrieved information for track #%x", t.ID)
+
+	return nil
 
 }
 
@@ -42,18 +52,33 @@ func (t *Track) Update(i interface{}) error {
 
 	info := i.(Track)
 
-	return db.Model(&t).Updates(info).Error
+	if err := db.Model(&t).Updates(info).Error; err != nil {
+		log.Warn(err)
+		return err
+	}
+
+	log.Infof("icii updated track #%x with new information", t.ID)
+
+	return nil
 
 }
 
 // Delete the track
 func (t *Track) Delete() error {
 
-	if err := os.Remove(t.Location); err != nil {
+	if err := db.Delete(&t).Error; err != nil {
+		log.Warn(err)
 		return err
 	}
 
-	return db.Delete(&t).Error
+	if err := os.Remove(t.Location); err != nil {
+		log.Warn("err")
+		return err
+	}
+
+	log.Infof("icii removed track #%x", t.ID)
+
+	return nil
 
 }
 
@@ -64,12 +89,14 @@ func (t *Track) Echo(c echo.Context) error {
 
 	id, err := strconv.Atoi(i)
 	if err != nil {
+		log.Warn(err)
 		return err
 	}
 
 	s := c.Param("station")
 	sid, err := strconv.Atoi(s)
 	if err != nil {
+		log.Warn(err)
 		return err
 	}
 
@@ -86,7 +113,7 @@ func (t *Track) FixTags() {
 	tag, err := id3v2.Open(t.Location, id3v2.Options{Parse: true})
 	if err != nil {
 
-		log.Println(err)
+		log.Warnf("icii was unable to read id3v2 tags for track at %s: %x", t.Location, err)
 
 		if t.Title == "" {
 			t.Title = "import from " + filepath.Base(t.Location)
