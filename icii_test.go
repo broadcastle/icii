@@ -27,6 +27,7 @@ func TestIcii(t *testing.T) {
 	userEdit := userCreate + "edit/"
 	station := base + "station/"
 	track := station + "1/track/"
+	stream := station + "1/stream/1/"
 
 	cmd.Execute()
 
@@ -113,6 +114,12 @@ func TestIcii(t *testing.T) {
 	// Play the first track.
 	if err := token.post(track+"1/play/", nil); err != nil {
 		t.Error(err)
+	}
+
+	// Delete the last stream (must have error)
+	if err := token.delete(stream); err != nil {
+		t.Error(err)
+		// t.Error("deleted last stream")
 	}
 
 	return

@@ -1,6 +1,10 @@
 package ice
 
 import (
+	"errors"
+	"log"
+	"strconv"
+
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/labstack/echo"
 )
@@ -22,15 +26,45 @@ func (s *Stream) Update(i interface{}) error {
 
 // Delete a stream
 func (s *Stream) Delete() error {
-	return nil
+
+	var results uint
+
+	if err := db.Model(&Stream{}).Where("station_id = ? ", s.StationID).Count(&results).Error; err != nil {
+		log.Printf("stream.Delete(): %v", err)
+		return err
+	}
+
+	if int(results) < 2 {
+		return errors.New("unable to delete last stream")
+	}
+
+	return db.Delete(&s).Error
+
 }
 
 // Get stream information
 func (s *Stream) Get() error {
-	return nil
+	return db.Where(&s).First(&s).Error
 }
 
 // Echo gets the stream struct from the echo context.
 func (s *Stream) Echo(c echo.Context) error {
-	return nil
+
+	i := c.Param("stream")
+
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		return err
+	}
+
+	st := c.Param("station")
+	sid, err := strconv.Atoi(st)
+	if err != nil {
+		return err
+	}
+
+	s.ID = uint(id)
+	s.StationID = uint(sid)
+
+	return s.Get()
 }

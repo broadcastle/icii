@@ -49,5 +49,17 @@ func streamGet(c echo.Context) error {
 }
 
 func streamDelete(c echo.Context) error {
-	return errors.New("nothing in web.streamDelete")
+
+	stream := ice.InitStream()
+
+	if err := ice.Echo(stream, c); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	if err := ice.Remove(stream); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
+	return c.JSON(http.StatusOK, "success")
+
 }
