@@ -4,11 +4,10 @@ import (
 	"errors"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"broadcastle.co/code/icii/pkg/database"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,7 +20,7 @@ type User struct {
 // Create a user.
 func (user *User) Create() error {
 
-	log.Info("creating user")
+	logrus.Info("creating user")
 
 	var found database.User
 

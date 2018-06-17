@@ -4,6 +4,7 @@ import (
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -82,7 +83,11 @@ func Start() error {
 		Temp: viper.GetBool("database.temp"),
 	}
 
-	if !c.Temp {
+	switch c.Temp {
+	case true:
+		logrus.Debug("running temporary database")
+	case false:
+		logrus.Debug("running connected database")
 		c.Database = viper.GetString("database.database")
 		c.Host = viper.GetString("database.host")
 		c.Password = viper.GetString("database.password")
@@ -95,6 +100,7 @@ func Start() error {
 
 	db, err = c.Connect()
 	if err != nil {
+		logrus.Fatal(err)
 		return err
 	}
 

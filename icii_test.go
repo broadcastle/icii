@@ -17,6 +17,7 @@ import (
 	"broadcastle.co/code/icii/cmd"
 	"broadcastle.co/code/icii/pkg/database"
 	"broadcastle.co/code/icii/pkg/web"
+	"github.com/sirupsen/logrus"
 )
 
 func TestIcii(t *testing.T) {
@@ -30,6 +31,7 @@ func TestIcii(t *testing.T) {
 	stream := station + "1/stream/1/"
 
 	cmd.Execute()
+	logrus.SetLevel(logrus.DebugLevel)
 
 	go web.Start(8080)
 

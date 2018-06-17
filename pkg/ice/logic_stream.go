@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strconv"
 
-	log "github.com/sirupsen/logrus"
-
 	"broadcastle.co/code/icii/pkg/database"
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
+	"github.com/sirupsen/logrus"
 )
 
 // Stream information
@@ -17,11 +17,30 @@ type Stream struct {
 
 // Create a stream
 func (s *Stream) Create() error {
+
+	if err := db.Create(&s).Error; err != nil {
+		logrus.Warn(err)
+		return err
+	}
+
+	log.Infof("icii create a new stream with id: %x", s.ID)
+
 	return nil
+
 }
 
 // Update a stream
 func (s *Stream) Update(i interface{}) error {
+
+	info := i.(Stream)
+
+	if err := db.Model(&s).Updates(info).Error; err != nil {
+		logrus.Warn(err)
+		return err
+	}
+
+	logrus.Infof("icii updated stream #%x with new information", s.ID)
+
 	return nil
 }
 
@@ -31,16 +50,12 @@ func (s *Stream) Delete() error {
 	var results uint
 
 	if err := db.Model(&Stream{}).Where("station_id = ? ", s.StationID).Count(&results).Error; err != nil {
-		// log.Printf("stream.Delete(): %v", err)
-		// log.WithFields(log.Fields{
-		// 	"context": "database creation",
-		// }).Warn(err)
-		log.Info(err)
+		logrus.Warn(err)
 		return err
 	}
 
 	if int(results) < 2 {
-		log.Warn("unable to delete stream")
+		logrus.Warn("unable to delete stream")
 		return errors.New("unable to delete last stream")
 	}
 
