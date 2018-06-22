@@ -28,7 +28,7 @@ func TestIcii(t *testing.T) {
 	userEdit := userCreate + "edit/"
 	station := base + "station/"
 	track := station + "1/track/"
-	stream := station + "1/stream/1/"
+	send := station + "1/stream/1/"
 
 	cmd.Execute()
 	logrus.SetLevel(logrus.DebugLevel)
@@ -114,13 +114,20 @@ func TestIcii(t *testing.T) {
 	}
 
 	// Delete the last stream (must have error)
-	if err := token.delete(stream); err != nil {
+	if err := token.delete(send); err == nil {
+		t.Error("deleted last stream")
+	}
+
+	strmcnfg := database.Stream{
+		Host: "vh-icecast.localdomain",
+	}
+
+	if err := token.post(send, strmcnfg); err != nil {
 		t.Error(err)
-		// t.Error("deleted last stream")
 	}
 
 	// Play the first track.
-	if err := token.post(stream+"play/track/1", nil); err != nil {
+	if err := token.post(send+"play/track/1", nil); err != nil {
 		t.Error(err)
 	}
 
@@ -318,6 +325,8 @@ func statusError(link string, resp *http.Response) error {
 		}
 
 		log.Printf("unable to post to %v\nreason: %v\n%s", link, resp.StatusCode, string(d))
+
+		return errors.New(link + " returned " + resp.Status)
 	}
 
 	return nil

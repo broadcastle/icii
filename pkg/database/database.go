@@ -104,7 +104,7 @@ type UserPermission struct {
 type Stream struct {
 	gorm.Model
 
-	Host        string `json:"string" gorm:"default:'127.0.0.1'"`
+	Host        string `json:"host" gorm:"default:'127.0.0.1'"`
 	Port        int    `json:"port" gorm:"default:'8080'"`
 	Mount       string `json:"mount" gorm:"default:'stream'"`
 	User        string `json:"user" gorm:"default:'source'"`

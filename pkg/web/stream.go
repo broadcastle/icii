@@ -73,5 +73,9 @@ func streamPlayTrack(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
+	if err := stream.(*ice.Stream).Play(*track.(*ice.Track)); err != nil {
+		return c.JSON(http.StatusMethodNotAllowed, err)
+	}
+
 	return c.JSON(http.StatusOK, "success")
 }
