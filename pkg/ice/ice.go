@@ -44,8 +44,17 @@ func Update(d Data, i interface{}) error {
 }
 
 // Echo gets d from c.
-func Echo(d Data, c echo.Context) error {
-	return d.Echo(c)
+func Echo(c echo.Context, x ...Data) error {
+
+	for _, d := range x {
+
+		if err := d.Echo(c); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 //////////////////

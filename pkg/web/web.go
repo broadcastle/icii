@@ -125,8 +125,6 @@ func Start(port int) {
 	trk.GET("/:track/", trackGet)
 	trk.DELETE("/:track/", trackDelete)
 
-	trk.POST("/:track/play/", trackPlay)
-
 	////////////////////
 	// Station Stream //
 	////////////////////
@@ -137,6 +135,11 @@ func Start(port int) {
 	strm.POST("/:stream/", streamUpdate)
 	strm.GET("/:stream/", streamGet)
 	strm.DELETE("/:stream/", streamDelete)
+
+	pl := strm.Group("/:stream/play")
+
+	pl.POST("/track/:track/", streamPlayTrack)
+	pl.POST("/playlist/:playlist/", notImplemented)
 
 	//////////////
 	// Playlist //

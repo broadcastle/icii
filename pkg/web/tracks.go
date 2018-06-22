@@ -11,14 +11,9 @@ import (
 func trackCreate(c echo.Context) error {
 
 	user := ice.InitUser()
-
-	if err := ice.Echo(user, c); err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, err)
-	}
-
 	station := ice.InitStation()
 
-	if err := ice.Echo(station, c); err != nil {
+	if err := ice.Echo(c, user, station); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -61,7 +56,7 @@ func trackGet(c echo.Context) error {
 
 	track := ice.InitTrack()
 
-	if err := ice.Echo(track, c); err != nil {
+	if err := ice.Echo(c, track); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -84,7 +79,7 @@ func trackUpdate(c echo.Context) error {
 
 	track := ice.InitTrack()
 
-	if err := ice.Echo(track, c); err != nil {
+	if err := ice.Echo(c, track); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -108,7 +103,7 @@ func trackDelete(c echo.Context) error {
 
 	track := ice.InitTrack()
 
-	if err := ice.Echo(track, c); err != nil {
+	if err := ice.Echo(c, track); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -117,19 +112,4 @@ func trackDelete(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "success")
-}
-
-func trackPlay(c echo.Context) error {
-
-	track := ice.InitTrack()
-
-	if err := ice.Echo(track, c); err != nil {
-		return c.JSON(http.StatusMethodNotAllowed, err)
-	}
-
-	if err := track.(*ice.Track).Play(); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	return c.JSON(http.StatusOK, "playing")
 }

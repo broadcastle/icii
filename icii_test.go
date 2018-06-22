@@ -113,15 +113,15 @@ func TestIcii(t *testing.T) {
 		t.Error(err)
 	}
 
-	// Play the first track.
-	if err := token.post(track+"1/play/", nil); err != nil {
-		t.Error(err)
-	}
-
 	// Delete the last stream (must have error)
 	if err := token.delete(stream); err != nil {
 		t.Error(err)
 		// t.Error("deleted last stream")
+	}
+
+	// Play the first track.
+	if err := token.post(stream+"play/track/1", nil); err != nil {
+		t.Error(err)
 	}
 
 	return

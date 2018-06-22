@@ -23,7 +23,7 @@ func streamUpdate(c echo.Context) error {
 
 	stream := ice.InitStream()
 
-	if err := ice.Echo(stream, c); err != nil {
+	if err := ice.Echo(c, stream); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -40,7 +40,7 @@ func streamGet(c echo.Context) error {
 
 	stream := ice.InitStream()
 
-	if err := ice.Echo(stream, c); err != nil {
+	if err := ice.Echo(c, stream); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -52,7 +52,7 @@ func streamDelete(c echo.Context) error {
 
 	stream := ice.InitStream()
 
-	if err := ice.Echo(stream, c); err != nil {
+	if err := ice.Echo(c, stream); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -62,4 +62,16 @@ func streamDelete(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, "success")
 
+}
+
+func streamPlayTrack(c echo.Context) error {
+
+	stream := ice.InitStream()
+	track := ice.InitTrack()
+
+	if err := ice.Echo(c, stream, track); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, "success")
 }

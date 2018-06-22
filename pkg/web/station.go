@@ -37,7 +37,7 @@ func stationDelete(c echo.Context) error {
 
 	station := ice.InitStation()
 
-	if err := ice.Echo(station, c); err != nil {
+	if err := ice.Echo(c, station); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -53,7 +53,7 @@ func stationUpdate(c echo.Context) error {
 
 	station := ice.InitStation()
 
-	if err := ice.Echo(station, c); err != nil {
+	if err := ice.Echo(c, station); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 
@@ -75,7 +75,7 @@ func stationRetrieve(c echo.Context) error {
 
 	station := ice.InitStation()
 
-	if err := ice.Echo(station, c); err != nil {
+	if err := ice.Echo(c, station); err != nil {
 		return c.JSON(http.StatusMethodNotAllowed, err)
 	}
 

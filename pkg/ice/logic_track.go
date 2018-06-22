@@ -151,8 +151,3 @@ func (t *Track) FixTags() {
 	}
 
 }
-
-// Play will take a valid t and play it.
-func (t Track) Play() error {
-	return nil
-}
